@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "cozy-movies",
+    "slug": "cozy-movies",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/logo.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.anonymous.cozymovies",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/logo.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/logo.png"
+    },
+    "plugins": [
+      ["expo-build-properties", {
+        "ios": {
+          "useFrameworks": "static"
+        },
+        "android": {
+          "package": "com.anonymous.cozymovies",
+          "enableProguardInReleaseBuilds": true,
+          "proguardRules": "./proguard-rules.pro"
+        }
+      }],
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
