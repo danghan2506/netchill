@@ -21,13 +21,13 @@ const Profile = () => {
   }, [])
 
   const handleSignOut = async () => {
-    Alert.alert('Xác nhận', 'Bạn có chắc muốn đăng xuất?', [
+    Alert.alert('Confirm', 'Do you want to logout', [
       {
-        text: 'Huỷ',
+        text: 'Cancel',
         style: 'cancel',
       },
       {
-        text: 'Đăng xuất',
+        text: 'Logout',
         style: 'destructive',
         onPress: async () => {
           try {

@@ -1,118 +1,98 @@
-import { View, Text, ScrollView, Image, ActivityIndicator, TouchableOpacity } from 'react-native'
-import React from 'react'
-import { useLocalSearchParams, useRouter} from 'expo-router/build/hooks'
-import useFetch from '@/services/useFetch';
-import { fetchMoviesDetails } from '@/services/api';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { icons } from '@/constants/icons';
-interface MovieInfoProps {
-  label: string;
-  value?: string | number | null;
-}
-const MovieInfo = ({ label, value }: MovieInfoProps) => (
-  <View className="flex-col items-start justify-center mt-5">
-    <Text className="text-light-200 font-normal text-sm">{label}</Text>
-    <Text className="text-light-100 font-bold text-sm mt-2">
-      {value || "N/A"}
-    </Text>
-  </View>
-);
-const MovieDetails = () => {
-    const router = useRouter()
-    // get the id from the URL, id sẽ chứa id của movie
-    const {id} = useLocalSearchParams();
-    const {data: movies, loading: moviesLoading} = useFetch(() => fetchMoviesDetails(id as string))
-    if(moviesLoading){
-      return(
-        <SafeAreaView className='bg-primary flex-1'>
-          <ActivityIndicator/>
-        </SafeAreaView>
-      )
-    }
+import {
+  View,
+  Text,
+  Image,
+  ActivityIndicator,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import useFetch from "@/services/useFetch";
+import { fetchMovieDetails } from "@/services/api";
+import { Ionicons } from "@expo/vector-icons";
+
+const { width } = Dimensions.get("window");
+
+const getImageUrl = (
+  poster_url: string | null | undefined,
+  created: string
+): string => {
+  if (!poster_url) return "https://placehold.co/600x400/1a1a1a/ffffff.png";
+  if (poster_url.startsWith("http")) return poster_url;
+
+  const createdDate = new Date(created);
+  const date = `${createdDate.getFullYear()}${String(
+    createdDate.getMonth() + 1
+  ).padStart(2, "0")}${String(createdDate.getDate()).padStart(2, "0")}-1`;
+
+  return `https://phimimg.com/upload/vod/${date}/${poster_url}`;
+};
+
+const Details = () => {
+  const router = useRouter();
+  const { slug } = useLocalSearchParams();
+  const { data: movie, loading } = useFetch(() =>
+    fetchMovieDetails(slug as string)
+  );
+
+  if (loading)
+    return (
+      <SafeAreaView className="bg-primary flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#fff" />
+      </SafeAreaView>
+    );
+
+  const imageUrl = getImageUrl(movie?.poster_url, movie?.created?.time ?? "");
+
   return (
-    <View className="bg-primary flex-1">
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-        <View>
+    <SafeAreaView className="bg-primary flex-1">
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header image with back button */}
+        <View className="relative">
           <Image
-            source={{
-              uri: `https://image.tmdb.org/t/p/w500${movies?.poster_path}`,
-            }}
-            className="w-full h-[550px]"
+            source={{ uri: imageUrl }}
+            className="mt-5 w-full h-[550px]"
             resizeMode="stretch"
           />
 
-          <TouchableOpacity className="absolute bottom-5 right-5 rounded-full size-14 bg-white flex items-center justify-center">
-            <Image
-              source={icons.play}
-              className="w-6 h-7 ml-1"
-              resizeMode="stretch"
-            />
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="absolute top-12 left-5 bg-black/60 p-2 rounded-full"
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
         </View>
 
-        <View className="flex-col items-start justify-center mt-5 px-5">
-          <Text className="text-white font-bold text-xl">{movies?.title}</Text>
-          <View className="flex-row items-center gap-x-1 mt-2">
-            <Text className="text-light-200 text-sm">
-              {movies?.release_date?.split("-")[0]} •
+        {/* Movie Info */}
+        <View className="px-5 mt-4">
+          <Text className="text-white text-2xl font-bold">{movie?.name}</Text>
+
+          <View className="flex-row gap-3 mt-2 flex-wrap">
+            <Text className="text-gray-400 text-xs">
+              Năm: {movie?.year ?? "?"}
             </Text>
-            <Text className="text-light-200 text-sm">{movies?.runtime}m</Text>
-          </View>
-
-          <View className="flex-row items-center bg-dark-100 px-2 py-1 rounded-md gap-x-1 mt-2">
-            <Image source={icons.star} className="size-4" />
-
-            <Text className="text-white font-bold text-sm">
-              {Math.round(movies?.vote_average ?? 0)}/10
+            <Text className="text-gray-400 text-xs">
+              Thời lượng: {movie?.time ?? "?"}
             </Text>
-
-            <Text className="text-light-200 text-sm">
-              ({movies?.vote_count} votes)
+            <Text className="text-gray-400 text-xs">
+              Chất lượng: {movie?.quality}
             </Text>
+            <Text className="text-gray-400 text-xs">
+              Ngôn ngữ: {movie?.lang}
+            </Text>
+          
           </View>
-
-          <MovieInfo label="Overview" value={movies?.overview} />
-          <MovieInfo
-            label="Genres"
-            value={movies?.genres?.map((g) => g.name).join(" • ") || "N/A"}
-          />
-
-          <View className="flex flex-row justify-between w-1/2">
-            <MovieInfo
-              label="Budget"
-              value={`$${(movies?.budget ?? 0) / 1_000_000} million`}
-            />
-            <MovieInfo
-              label="Revenue"
-              value={`$${Math.round(
-                (movies?.revenue ?? 0) / 1_000_000
-              )} million`}
-            />
-          </View>
-
-          <MovieInfo
-            label="Production Companies"
-            value={
-              movies?.production_companies?.map((c) => c.name).join(" • ") ||
-              "N/A"
-            }
-          />
+          
+          {/* Nội dung mô tả */}
+          <Text className="text-gray-300 text-base mt-4 leading-relaxed">
+            {movie?.content ?? "Chưa có mô tả..."}
+          </Text>
         </View>
       </ScrollView>
+    </SafeAreaView>
+  );
+};
 
-      <TouchableOpacity
-        className="absolute bottom-5 left-0 right-0 mx-5 bg-accent rounded-lg py-3.5 flex flex-row items-center justify-center z-50"
-        onPress={router.back}
-      >
-        <Image
-          source={icons.arrow}
-          className="size-5 mr-1 mt-0.5 rotate-180"
-          tintColor="#fff"
-        />
-        <Text className="text-white font-semibold text-base">Go Back</Text>
-      </TouchableOpacity>
-    </View>
-  )
-}
-
-export default MovieDetails
+export default Details;

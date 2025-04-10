@@ -4,7 +4,6 @@ interface Root {
   movie: Movie
   episodes: Episode[]
 }
-
 interface Movie {
   tmdb: Tmdb
   imdb: Imdb

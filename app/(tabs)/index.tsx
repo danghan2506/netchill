@@ -10,12 +10,12 @@ import React, { useEffect, useState } from "react";
 import { Tabs, useRouter } from "expo-router";
 import { images } from "@/constants/images";
 import { icons } from "@/constants/icons";
-import SearchBar from "@/components/SearchBar";
+import SearchBar from "@/components/movies/SearchBar";
 import useFetch from "@/services/useFetch";
-import { fetchMovies, fetchTrendingMovies } from "@/services/api";
-import MoviesCard from "@/components/MoviesCard";
+import { fetchMovies } from "@/services/api";
+import MoviesCard from "@/components/movies/MoviesCard";
 
-import TrendingCard from "@/components/TrendingCard";
+import TrendingCard from "@/components/movies/TrendingCard";
 
 const Index = () => {
   const router = useRouter();
@@ -23,14 +23,14 @@ const Index = () => {
     data: trendingMovies,
     loading: trendingMoviesLoading,
     error: trendingMoviesError,
-  } = useFetch(() => fetchTrendingMovies());
+  } = useFetch(() => fetchMovies(2));
   const {
     data: movies,
     loading: moviesLoading,
     error: moviesError,
-  } = useFetch(() => fetchMovies());
+  } = useFetch(() => fetchMovies(1));
   return (
-    <View className="flex-1 bg-secondary">
+    <View className="flex-1 bg-primary">
       <Image source={images.bg} className="absolute w-full z-0" />
       <ScrollView
         className="flex-1 px-5"
@@ -57,10 +57,8 @@ const Index = () => {
               </Text>
               <FlatList
                 data={trendingMovies}
-                renderItem={({ item, index }) => (
-                  <TrendingCard {...item} index={index} />
-                )}
-                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => <TrendingCard {...item} />}
+                keyExtractor={(item) => item._id.toString()}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{
@@ -77,7 +75,7 @@ const Index = () => {
             <FlatList
               data={movies}
               renderItem={({ item }) => <MoviesCard {...item} />}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item) => item._id.toString()}
               numColumns={3}
               columnWrapperStyle={{
                 justifyContent: "space-between",

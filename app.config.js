@@ -7,6 +7,9 @@ export default {
       "package": "com.anonymous.cozymovies"
     },
     version: "1.0.0",
+    "plugins" : [
+      "expo-video"
+    ],
     extra: {
         EXPO_PUBLIC_TMDB_API_KEY: process.env.EXPO_PUBLIC_TMDB_API_KEY,
         EXPO_PUBLIC_APPWRITE_PROJECT_ID: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID,
