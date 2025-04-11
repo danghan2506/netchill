@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import "./global.css";
 import { getAuth } from "@firebase/auth";
-import { auth } from "@/FirebaseConfig";
 export default function RootLayout() {
   const router = useRouter();
   getAuth().onAuthStateChanged((user) => {

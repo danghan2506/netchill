@@ -35,6 +35,7 @@ interface Movie {
   director: string[]
   category: Category[]
   country: Country[]
+  APP_DOMAIN_CDN_IMAGE: string
 }
 
 interface Tmdb {

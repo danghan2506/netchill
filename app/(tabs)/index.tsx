@@ -14,7 +14,6 @@ import SearchBar from "@/components/movies/SearchBar";
 import useFetch from "@/services/useFetch";
 import { fetchMovies } from "@/services/api";
 import MoviesCard from "@/components/movies/MoviesCard";
-
 import TrendingCard from "@/components/movies/TrendingCard";
 
 const Index = () => {

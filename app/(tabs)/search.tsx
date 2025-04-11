@@ -2,7 +2,7 @@ import { View, Text, FlatList, Image, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import useFetch from '@/services/useFetch'
-import { fetchMovies } from '@/services/api'
+import { fetchMovies, searchMovies } from '@/services/api'
 import { images } from '@/constants/images'
 import MoviesCard from '@/components/movies/MoviesCard'
 import { icons } from '@/constants/icons'
@@ -18,16 +18,12 @@ const search = () => {
       error: moviesError,
       refetch: loadMovies,
       resetData: reset,
-  } = useFetch(() => fetchMovies({ query: searchQuery }), false)
+  } = useFetch(() => searchMovies(searchQuery), false)
   // Debounced search effect
   useEffect(() => {
-    
     const timeOutId = setTimeout(async () => {
       if(searchQuery.trim()){
         await loadMovies();
-        if(movies?.length > 0){
-          await updateSearchCount(searchQuery, movies[0]);
-        }
       }
       else{
         reset();
@@ -39,7 +35,7 @@ return (
   <View className='flex-1 bg-primary'>
       <Image source={images.bg} className='flex-1 absolute w-full z-0' resizeMode='cover'></Image>
       <FlatList data={movies} 
-      keyExtractor={(item) => item.id.toString()}
+      keyExtractor={(item) => item._id.toString()}
       renderItem={({item}) => <MoviesCard {...item}/>} numColumns={3} columnWrapperStyle={{
         justifyContent: "flex-start",
         gap: 5,
@@ -67,8 +63,6 @@ return (
              <Text className='text-accent'>{searchQuery}</Text>
             </Text>
           )}
-
-        
         </>
       }
       ListEmptyComponent={
