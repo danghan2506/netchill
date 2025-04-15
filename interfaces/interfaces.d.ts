@@ -1,3 +1,5 @@
+import { SharedValue } from "react-native-reanimated"
+
 interface Root {
   status: boolean
   msg: string
@@ -33,11 +35,21 @@ interface Movie {
   view: number
   actor: string[]
   director: string[]
-  category: Category[]
+  category: Category
   country: Country[]
   APP_DOMAIN_CDN_IMAGE: string
+  scrollX: SharedValue<number>
 }
-
+interface TrendingMovie {
+  keyword: string,
+  page: number,
+  sort_field: string,
+  sort_lang: string,
+  category: string,
+  country: string,
+  year: number,
+  limit: number,
+}
 interface Tmdb {
   type: string
   id: string

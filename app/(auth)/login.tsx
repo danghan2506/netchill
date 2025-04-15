@@ -5,6 +5,8 @@ import { auth } from '../../FirebaseConfig';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { images } from '@/constants/images'
+import { Icon } from '@/components/ui/icon';
+import { Eye, EyeOff, Mail } from 'lucide-react-native';
 const login = () => {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -44,17 +46,16 @@ const login = () => {
           className="flex-1 justify-center"
         >
           <View className="items-center mb-12">
-            <Text className="text-3xl font-bold text-red-600 tracking-wide">COZY MOVIES</Text>
-            <Text className="text-white text-sm mt-1">WATCH ANY MOVIES THAT YOU LIKE BEST!</Text>
+            <Text className="text-6xl font-bold text-red-600 tracking-wide font-[BebasNeue] font-regular ">COZY MOVIES</Text>
+            <Text className="text-white opacity-40 text-2xl mt-1 font-[BebasNeue] font-regular font-[400]">WATCH TV SHOW AND MOVIES.</Text>
           </View>
           
-          <View className="bg-gray-900/80 rounded-xl p-5 w-full">
-            <Text className="text-2xl font-bold text-white mb-6 text-center">Login</Text>
+          <View className=" rounded-xl p-5 w-full">
+           
             
             <View className="flex-row items-center bg-white/10 rounded-lg mb-4 px-3 h-12">
-              <Feather name="mail" size={20} color="#E50914" className="mr-2" />
               <TextInput 
-                placeholder="Email" 
+                placeholder="abc@gmail.com" 
                 placeholderTextColor="#999"
                 onChangeText={setEmail} 
                 value={email}
@@ -65,9 +66,9 @@ const login = () => {
             </View>
             
             <View className="flex-row items-center bg-white/10 rounded-lg mb-4 px-3 h-12">
-              <Feather name="lock" size={20} color="#E50914" className="mr-2" />
+              
               <TextInput 
-                placeholder="Mật khẩu" 
+                placeholder="Enter password" 
                 placeholderTextColor="#999"
                 onChangeText={setPassword} 
                 value={password}
@@ -75,16 +76,16 @@ const login = () => {
                 className="flex-1 text-white h-full"
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="p-1">
-                <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#999" />
+                ${showPassword ? <Icon as={Eye} color='white'/> : <Icon as={EyeOff} color='white'/>}
               </TouchableOpacity>
             </View>
             
             <TouchableOpacity className="self-end mb-5">
-              <Text className="text-red-600 text-xs">Forgot password?</Text>
+              <Text className="text-gray-500 text-xs">Forgot password?</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              className={`bg-red-600 rounded-lg h-12 justify-center items-center mb-5 ${loading ? 'opacity-70' : ''}`}
+              className={`bg-[#EE1520] rounded-lg h-12 justify-center items-center mb-5 ${loading ? 'opacity-70' : ''}`}
               onPress={signIn}
               disabled={loading}
             >
@@ -96,15 +97,21 @@ const login = () => {
             </TouchableOpacity>
             <View className="flex-row items-center my-5">
               <View className="flex-1 h-px bg-white/30" />
-              <Text className="text-white/60 px-3 text-xs">or</Text>
+              <Text className="text-white/60 px-3 text-xs">OR CONTINUE WITH</Text>
               <View className="flex-1 h-px bg-white/30" />
             </View>
             
             <TouchableOpacity 
-              className="border border-red-600 rounded-lg h-12 justify-center items-center"
+              className="bg-[#EE1520] rounded-lg h-12 justify-center items-center"
               onPress={() => router.push('/(auth)/signup')}
             >
-              <Text className="text-red-600 text-sm font-bold">Create a new account!</Text>
+              <Text className="text-white text-sm font-bold">Create a new account!</Text>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              
+            </TouchableOpacity>
+            <TouchableOpacity>
+
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>

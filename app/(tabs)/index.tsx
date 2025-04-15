@@ -5,6 +5,8 @@ import {
   ScrollView,
   ActivityIndicator,
   FlatList,
+  Dimensions,
+  StyleSheet,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Tabs, useRouter } from "expo-router";
@@ -12,17 +14,24 @@ import { images } from "@/constants/images";
 import { icons } from "@/constants/icons";
 import SearchBar from "@/components/movies/SearchBar";
 import useFetch from "@/services/useFetch";
-import { fetchMovies } from "@/services/api";
+import { fetchMovies, fetchTrendingMovies } from "@/services/api";
 import MoviesCard from "@/components/movies/MoviesCard";
 import TrendingCard from "@/components/movies/TrendingCard";
-
+import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 const Index = () => {
   const router = useRouter();
   const {
     data: trendingMovies,
     loading: trendingMoviesLoading,
     error: trendingMoviesError,
-  } = useFetch(() => fetchMovies(2));
+  } = useFetch(() => fetchTrendingMovies("hanh-dong", 1, "modified.time"));
+  const scrollX = useSharedValue(0)
+
+  const onScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x
+    }
+  });
   const {
     data: movies,
     loading: moviesLoading,
@@ -32,7 +41,7 @@ const Index = () => {
     <View className="flex-1 bg-primary">
       <Image source={images.bg} className="absolute w-full z-0" />
       <ScrollView
-        className="flex-1 px-5"
+        className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ minHeight: "100%", paddingBottom: 10 }}
       >
@@ -50,24 +59,25 @@ const Index = () => {
                 placeholder="Search for a movie you like!"
               />
             </View>
-            <View>
-              <Text className="text-white text-2xl font-bold mb-5">
+            <Text className="text-white text-2xl font-bold mb-5">
                 Trending Movies
               </Text>
-              <FlatList
+              <View style={styles.carouselContainer}>
+                <Animated.FlatList
                 data={trendingMovies}
-                renderItem={({ item }) => <TrendingCard {...item} />}
+                renderItem={({ item , index}) => <TrendingCard {...item} scrollX = {scrollX} index={index}/>}
                 keyExtractor={(item) => item._id.toString()}
                 horizontal
                 showsHorizontalScrollIndicator={false}
+                pagingEnabled
                 contentContainerStyle={{
-                  paddingLeft: 10,
-                  paddingRight: 20,
-                  gap: 16,
+                  alignItems: "center"
                 }}
-                className="mb-4 mt-3"
+                removeClippedSubviews={false}
+                onScroll={onScrollHandler}
+                scrollEventThrottle={16}
               />
-            </View>
+              </View>
             <Text className="text-white text-2xl font-bold mb-5">
               Latest Movies
             </Text>
@@ -90,5 +100,13 @@ const Index = () => {
     </View>
   );
 };
+const { width } = Dimensions.get("window");
+const styles = StyleSheet.create({
+  carouselContainer: {
+    width: "100%",
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+})
 
 export default Index;
