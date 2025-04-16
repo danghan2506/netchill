@@ -8,7 +8,7 @@ import {
   Dimensions,
   StyleSheet,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Tabs, useRouter } from "expo-router";
 import { images } from "@/constants/images";
 import { icons } from "@/constants/icons";
@@ -17,26 +17,71 @@ import useFetch from "@/services/useFetch";
 import { fetchMovies, fetchTrendingMovies } from "@/services/api";
 import MoviesCard from "@/components/movies/MoviesCard";
 import TrendingCard from "@/components/movies/TrendingCard";
-import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
+import Animated, { scrollTo, useAnimatedRef, useAnimatedScrollHandler, useDerivedValue, useSharedValue } from "react-native-reanimated";
+import * as ScreenOrientation from 'expo-screen-orientation';
+
 const Index = () => {
   const router = useRouter();
+  
+  useEffect(() => {
+    // Khóa màn hình ở chế độ dọc khi component được mount
+    const lockPortrait = async () => {
+      await ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT
+      );
+    };
+    
+    lockPortrait();
+
+    // Clean up khi component unmount
+    return () => {
+      // Bỏ khóa nếu cần
+      const unlockAll = async () => {
+        await ScreenOrientation.unlockAsync();
+      };
+      unlockAll();
+    };
+  }, []);
+  
   const {
     data: trendingMovies,
     loading: trendingMoviesLoading,
     error: trendingMoviesError,
   } = useFetch(() => fetchTrendingMovies("hanh-dong", 1, "modified.time"));
   const scrollX = useSharedValue(0)
-
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const ref = useAnimatedRef<Animated.FlatList<any>>()
+  const [isAutoPlay, setIsAutoPlay] = useState(false)
+  const interval = useRef<NodeJS.Timeout>()
+  const offset = useSharedValue(0)
+  const { width } = Dimensions.get("window");
   const onScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollX.value = event.contentOffset.x
-    }
+    },
+    // onMomentumEnd: (event) => {
+    //   scrollX.value = event.contentOffset.x
+    // }
   });
   const {
     data: movies,
     loading: moviesLoading,
     error: moviesError,
   } = useFetch(() => fetchMovies(1));
+  // useEffect(() => {
+  //   if(isAutoPlay == true){
+  //     interval.current = setInterval(() => {
+  //       offset.value = offset.value + width
+  //     }, 5000)
+  //   }
+  //   else{
+  //     clearInterval(interval.current)
+  //   }
+  // }, [isAutoPlay, offset, width])
+  // useDerivedValue(() => {
+  //   scrollTo(ref, offset.value, 0, true)
+  // })
   return (
     <View className="flex-1 bg-primary">
       <Image source={images.bg} className="absolute w-full z-0" />
@@ -59,7 +104,7 @@ const Index = () => {
                 placeholder="Search for a movie you like!"
               />
             </View>
-            <Text className="text-white text-2xl font-bold mb-5">
+            <Text className="text-white text-2xl font-bold mb-5 mt-5">
                 Trending Movies
               </Text>
               <View style={styles.carouselContainer}>
@@ -76,6 +121,12 @@ const Index = () => {
                 removeClippedSubviews={false}
                 onScroll={onScrollHandler}
                 scrollEventThrottle={16}
+                // onScrollBeginDrag={() => {
+                //   setIsAutoPlay(false)
+                // }}
+                // onScrollEndDrag={() => {
+                //   setIsAutoPlay(true)
+                // }}
               />
               </View>
             <Text className="text-white text-2xl font-bold mb-5">
@@ -100,7 +151,6 @@ const Index = () => {
     </View>
   );
 };
-const { width } = Dimensions.get("window");
 const styles = StyleSheet.create({
   carouselContainer: {
     width: "100%",

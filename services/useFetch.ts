@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 // <T> là một generic type đại diện cho kiểu dữ liệu mà fetchFunction sẽ trả về.
 // Ví dụ: nếu fetchFunction trả về một mảng các đối tượng phim, thì T sẽ là kiểu mảng đó.
 const useFetch = <T>(fetchFunction: () => Promise<T>, autoFetch = true) => {
-  const [data, setData] = useState<T | null>(null);
+  const [data, setData] = useState<T>([] as T); // default = array
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -20,11 +21,11 @@ const useFetch = <T>(fetchFunction: () => Promise<T>, autoFetch = true) => {
   };
 
   const reset = () => {
-    setData(null);
+    setData([] as T); // reset về mảng rỗng
     setLoading(false);
     setError(null);
   };
-  // tu dong goi fetchData khi component duoc render lan dau, autoFetch quyet dinh fetchData co duoc goi tu dong hay khong
+
   useEffect(() => {
     if (autoFetch) {
       fetchData();
@@ -33,5 +34,6 @@ const useFetch = <T>(fetchFunction: () => Promise<T>, autoFetch = true) => {
 
   return { data, loading, error, refetch: fetchData, reset };
 };
+
 
 export default useFetch;

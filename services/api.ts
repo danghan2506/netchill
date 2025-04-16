@@ -1,3 +1,5 @@
+import { Movie } from "@/interfaces/interfaces";
+
 export const KKPHIM_COFIG = {
   baseURL: "https://phimapi.com/",
 };
@@ -24,7 +26,7 @@ export const fetchTrendingMovies = async (type_list: string,page: number, sort_f
   return data.data.items || [];
 }
 export const searchMovies = async (keyword: string) :Promise<Movie[]> => {
-  const endpoint = `${KKPHIM_COFIG.baseURL}v1/api/tim-kiem?keyword=${keyword}`;
+  const endpoint = `${KKPHIM_COFIG.baseURL}/v1/api/tim-kiem?keyword=${keyword}`;
   const response = await fetch(endpoint, {
     method: "GET"});
   if(!response.ok){
@@ -33,6 +35,17 @@ export const searchMovies = async (keyword: string) :Promise<Movie[]> => {
   const data = await response.json()
   const filmImages = data.data.APP_DOMAIN_CDN_IMAGE ?? ""
   return data.data.items ?? []
+}
+export const fetchMoviesEpisodes = async (slug: string) => {
+  const endpoint = `${KKPHIM_COFIG.baseURL}/phim/${slug}`
+  const response = await fetch(endpoint, {
+    method: "GET",
+  })
+  if(!response.ok){
+    throw new Error(`Error fetching movie details: ${response.statusText}`)
+  }
+  const data = await response.json();
+  return data?.episodes?.[0]?.server_data || [];
 }
 export const fetchMovieDetails = async(slug: string) => {
   const endpoint = `${KKPHIM_COFIG.baseURL}/phim/${slug}`
@@ -46,5 +59,18 @@ export const fetchMovieDetails = async(slug: string) => {
   }
   const data = await response.json()
   return data.movie || data
+}
+export const fetchMoviesByGenre = async (genre: string) => {
+  const endpoint = `${KKPHIM_COFIG}/v1/api/${genre}?page=1?`
+  const response = await fetch(endpoint, {
+    method: "GET"
+  })
+  if(!response.ok){
+    throw new Error(
+      `Error fetching movie details: ${response.statusText}`
+    )
+  }
+  const data = await response.json()
+  return data.data.items || []
 }
 

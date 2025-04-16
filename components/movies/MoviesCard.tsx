@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import React from "react";
 import { Link } from "expo-router";
+import { Movie } from "@/interfaces/interfaces";
 
 const getImageUrl = (
   poster_url: string | null | undefined,
@@ -12,11 +13,13 @@ const getImageUrl = (
   if (poster_url.startsWith("http")) {
     return poster_url;
   }
+  else if(!poster_url.startsWith("http")){
+    return `https://phimimg.com/${poster_url}`
+  }
   const createdDate = new Date(created);
   const date = `${createdDate.getFullYear()}${String(
     createdDate.getMonth() + 1
   ).padStart(2, "0")}${String(createdDate.getDate()).padStart(2, "0")}-1`;
-  console.log(date)
   return `https://phimimg.com/upload/vod/${date}/${poster_url}`;
 };
 

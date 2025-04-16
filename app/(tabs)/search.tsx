@@ -7,8 +7,6 @@ import { images } from '@/constants/images'
 import MoviesCard from '@/components/movies/MoviesCard'
 import { icons } from '@/constants/icons'
 import SearchBar from '@/components/movies/SearchBar'
-import { updateSearchCount } from '@/services/appwrite'
-
 const search = () => {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")

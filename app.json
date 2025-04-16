@@ -9,10 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "supportsScreenOrientation": ["portrait"]
     },
     "android": {
       "package": "com.anonymous.cozymovies",
+      "screenOrientation": "portrait",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
@@ -34,6 +36,12 @@
           "proguardRules": "./proguard-rules.pro"
         }
       }],
+      [
+        "expo-screen-orientation",
+        {
+          "initialOrientation": "PORTRAIT"
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
