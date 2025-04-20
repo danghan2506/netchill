@@ -6,8 +6,13 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
+  Dimensions,
 } from "react-native";
 import { Icon } from "../components/ui/icon";
+const screenWidth = Dimensions.get("window").width;
+const gap = 10;
+const horizontalPadding = 20; // tổng padding 2 bên container
+
 
 interface EpisodeModalProps {
   visible: boolean;
@@ -41,28 +46,36 @@ const EpisodeModal: React.FC<EpisodeModalProps> = ({
 
           {/* Episode List */}
           <FlatList
-            data={episodes}
-            keyExtractor={(item, index) => `${item.id}-${index}`}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                className="bg-[#1c1c1c] p-4 rounded-2xl shadow-black ring-offset-slate-50"
-                onPress={() => onEpisodeSelect(item)}
-                activeOpacity={0.7}
-              >
-                <Text className="text-white text-lg text-center">{item.name}</Text>
-              </TouchableOpacity>
-            )}
-            numColumns={4} // Hiển thị 4 cột
-            columnWrapperStyle={{
-              justifyContent: "flex-start",
-              alignItems: "center", // Tạo khoảng cách đều giữa các cột
-              marginBottom: 10,
-              gap: 10,
-               // Khoảng cách giữa các hàng
-            }}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            showsVerticalScrollIndicator={false}
-          />
+  data={episodes}
+  keyExtractor={(item, index) => `${item.id}-${index}`}
+  numColumns={4}
+  renderItem={({ item }) => (
+    <TouchableOpacity
+      onPress={() => onEpisodeSelect(item)}
+      activeOpacity={0.8}
+      style={{
+        backgroundColor: "#2c2c2c",
+        paddingVertical: 12,
+        borderRadius: 14,
+        alignItems: "center",
+        justifyContent: "center",
+        width: "23%"
+      }}
+    >
+      <Text style={{ color: "white", fontSize: 16 }}>{item.name}</Text>
+    </TouchableOpacity>
+  )}
+  columnWrapperStyle={{
+    flexDirection: "row",
+    gap: gap,
+    marginBottom: 10,
+    paddingHorizontal: horizontalPadding / 2,
+  }}
+  contentContainerStyle={{
+    paddingBottom: 20,
+  }}
+  showsVerticalScrollIndicator={false}
+/>
         </View>
       </View>
     </Modal>

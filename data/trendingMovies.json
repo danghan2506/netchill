@@ -1,0 +1,73 @@
+{
+    "episodes": [
+        {
+            "server_data": [Array
+            ],
+            "server_name": "#Hà Nội (Vietsub)"
+        }
+    ],
+    "movie": {
+        "_id": "1ca188ea50f3fc60a66b1aeec9622089",
+        "actor": [
+            "Tần Hạo",
+            "Hàn Canh",
+            "Chung Sở Hy",
+            "Sử Bằng Nguyên",
+            "Lâm Bác Dương"
+        ],
+        "category": [
+            [Object
+            ],
+            [Object
+            ],
+            [Object
+            ]
+        ],
+        "chieurap": false,
+        "content": "Vào đầu những năm 90, Đỗ Tương Đông, một sinh viên ưu tú của trường cảnh sát, không ngờ rằng mình lại bị phân công đến trại giam. Trong thời gian trực ban, hai nghi phạm bất ngờ trốn thoát. Một người tử vong, còn một người biến mất không dấu vết. Tội phạm Từ Văn Quốc, kẻ trốn thoát lâu ngày, vẫn lẩn khuất ngoài vòng pháp luật. Đỗ Tương Đông không ngừng truy bắt, nhưng vụ án vẫn bế tắc. Theo năm tháng, cuộc truy đuổi không chỉ ảnh hưởng đến cuộc sống của người thân và bạn bè, mà còn trở thành động lực quyết định, là nền tảng của số phận họ. Hơn 20 năm đối đầu trí tuệ, câu chuyện là minh chứng sống động cho lòng kiên trì và sức mạnh ý chí của con người trước dòng chảy thời gian",
+        "country": [
+            [Object
+            ]
+        ],
+        "created": {
+            "time": "2025-04-20T06:07:49.000Z"
+        },
+        "director": [
+            "Trương Bác Dục"
+        ],
+        "episode_current": "Tập 3",
+        "episode_total": "24",
+        "imdb": {
+            "id": null
+        },
+        "is_copyright": false,
+        "lang": "Vietsub",
+        "modified": {
+            "time": "2025-04-20T06:07:49.000Z"
+        },
+        "name": "Mượn Mạng Mà Sống",
+        "notify": "",
+        "origin_name": "A Life For A Life",
+        "poster_url": "https://phimimg.com/upload/vod/20250420-1/b6e2ee2a09df638e985b1b5ff033bb56.jpg",
+        "quality": "FHD",
+        "showtimes": "",
+        "slug": "muon-mang-ma-song",
+        "status": "ongoing",
+        "sub_docquyen": false,
+        "thumb_url": "https://phimimg.com/upload/vod/20250420-1/a0a7826c424cffd05ad629be5b3a2efd.jpg",
+        "time": "47 phút/tập",
+        "tmdb": {
+            "id": "261592",
+            "season": 1,
+            "type": "tv",
+            "vote_average": 5.5,
+            "vote_count": 2
+        },
+        "trailer_url": "https://www.youtube.com/watch?v=tlrlIc5q_eU",
+        "type": "series",
+        "view": 0,
+        "year": 2025
+    },
+    "msg": "",
+    "status": true
+}

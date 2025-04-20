@@ -20,6 +20,7 @@ import MovieModal from "@/modal/EpisodeModal";
 import { Icon } from "@/components/ui/icon";
 import { X } from "lucide-react-native";
 import EpisodeModal from "@/modal/EpisodeModal";
+import CustomVideoPlayer from "./VideoPlayer";
 
 const { width } = Dimensions.get("window");
 
@@ -140,28 +141,23 @@ const Details = () => {
 
   // Fullscreen player
   if (showEpisodePlayer && selectedEpisode) {
+    if (!selectedEpisode?.link_m3u8) {
+      console.error("Invalid video URL");
+      return null;
+    }
+
     return (
-      <View style={styles.fullscreenContainer}>
-        <VideoView
-          key={selectedEpisode?.id}
-          ref={videoRef}
-          style={styles.fullscreenVideo}
-          player={player}
-        />
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={handleCloseEpisodePlayer}
-        >
-          <Icon as={X} size="md" color="white" />
-        </TouchableOpacity>
-      </View>
+      <CustomVideoPlayer
+        uri={selectedEpisode?.link_m3u8 ?? ""}
+        onClose={handleCloseEpisodePlayer}
+      />
     );
   }
 
   // Main UI
   return (
     <SafeAreaView className="bg-primary flex-1">
-      (
+      
         <View className="w-full flex justify-center items-center py-4">
               <YoutubePlayer
                 height={250}
@@ -173,26 +169,28 @@ const Details = () => {
       </View>
            
       <Text className="text-white text-xl font-Roboto font-bold">
-              {movie?.name}
-            </Text>
-            <View className="flex-row flex-wrap mt-2 gap-2">
-              <View className="border border-gray-900 rounded-full px-2 py-0.5">
-                <Text className="text-gray-200 text-xs">{movie?.year ?? "?"}</Text>
-              </View>
-              <View className="border border-gray-900 rounded-full px-2 py-0.5">
-                <Text className="text-gray-200 text-xs">{movie?.time ?? "?"}</Text>
-              </View>
-              <View className="border border-gray-900 rounded-full px-2 py-0.5">
-                <Text className="text-gray-200 text-xs">{movie?.quality}</Text>
-              </View>
-              <View className="border border-gray-900 rounded-full px-2 py-0.5">
-                <Text className="text-gray-200 text-xs">{movie?.lang}</Text>
-              </View>
-            </View>
-            <Text className="text-white font-semibold text-[20px] font-[Roboto]">
-              Nội dung
-            </Text>
-            <Text className="text-white text-xs font-light">{movie?.content}</Text>
+  {movie?.name ?? "Tên phim không xác định"}
+</Text>
+<View className="flex-row flex-wrap mt-2 gap-2">
+  <View className="border border-gray-900 rounded-full px-2 py-0.5">
+    <Text className="text-gray-200 text-xs">{movie?.year ?? "N/A"}</Text>
+  </View>
+  <View className="border border-gray-900 rounded-full px-2 py-0.5">
+    <Text className="text-gray-200 text-xs">{movie?.time ?? "N/A"}</Text>
+  </View>
+  <View className="border border-gray-900 rounded-full px-2 py-0.5">
+    <Text className="text-gray-200 text-xs">{movie?.quality ?? "N/A"}</Text>
+  </View>
+  <View className="border border-gray-900 rounded-full px-2 py-0.5">
+    <Text className="text-gray-200 text-xs">{movie?.lang ?? "N/A"}</Text>
+  </View>
+</View>
+<Text className="text-white font-semibold text-[20px] font-[Roboto]">
+  Nội dung
+</Text>
+<Text className="text-white text-xs font-light">
+  {movie?.content ?? "Không có nội dung"}
+</Text>
             <TouchableOpacity
               style={styles.watchButton}
               onPress={handleOpenModal}
@@ -213,9 +211,6 @@ const Details = () => {
         episodes={episode}
         onEpisodeSelect={handleEpisodeSelect}
       />
-      )
-
-      
 
       {/* Movie Modal */}
      

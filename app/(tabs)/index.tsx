@@ -23,7 +23,7 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 const Index = () => {
   const router = useRouter();
   const [isAutoPlay, setIsAutoPlay] = useState(true)
-  const flatListRef = useRef(null)
+  const flatListRef = useRef<FlatList<any>>(null);
   useEffect(() => {
     // Khóa màn hình ở chế độ dọc khi component được mount
     const lockPortrait = async () => {
@@ -125,7 +125,7 @@ const Index = () => {
               />
               </View>
             <Text className="text-white text-2xl font-bold mb-5 mt-5 mx-5">
-              Đề xuất cho bạn
+              Thịnh hành
             </Text>
             <FlatList
               data={movies}
