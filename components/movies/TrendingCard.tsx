@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { Movie } from "@/interfaces/interfaces";
+import { push } from "expo-router/build/global-state/routing";
 
 const getImageUrl = (poster_url: string | null | undefined): string => {
   if (!poster_url) {
@@ -76,33 +77,12 @@ const TrendingCard = ({
               colors={["transparent", "rgba(0,0,0,0.8)"]}
               style={styles.background}
             />
-            <Text className="text-white text-lg font-semibold mt-2">
-              {name}
-            </Text>
             <View className="flex-row items-center space-x-1 mb-2 mt-2">
               <Text className="text-white text-sm">{year}</Text>
               <Icon as={Dot} color="white" />
               <Text className="text-white text-sm">{lang}</Text>
             </View>
-            <View className="flex-row items-center justify-center mt-2">
-              {/* Yêu thích */}
-              <TouchableOpacity className="p-2 rounded-full bg-white/10 mr-4">
-                <Icon as={Heart} size="md" color="white" />
-              </TouchableOpacity>
-
-              {/* Nút Play */}
-              <TouchableOpacity className="flex-row items-center bg-white px-5 py-2.5 rounded-full shadow-md">
-                <Icon as={Play} size="md" color="black" />
-                <Text className="ml-2 text-black font-semibold text-base">
-                  Play
-                </Text>
-              </TouchableOpacity>
-
-              {/* Thông tin */}
-              <TouchableOpacity className="p-2 rounded-full bg-white/10 ml-4">
-                <Icon as={Info} size="md" color="white" />
-              </TouchableOpacity>
-            </View>
+            
           </View>
         </TouchableOpacity>
       </Link>

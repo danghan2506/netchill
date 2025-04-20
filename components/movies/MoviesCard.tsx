@@ -39,13 +39,8 @@ const MoviesCard = ({
           resizeMode="cover"
         />
         <Text
-          style={{
-            color: "white",
-            marginTop: 6,
-            fontSize: 14,
-            fontWeight: "bold",
-          }}
-          numberOfLines={1}
+          className="text-white font-bold mt-2 text-xs"
+          numberOfLines={2}
         >
           {name}
         </Text>
