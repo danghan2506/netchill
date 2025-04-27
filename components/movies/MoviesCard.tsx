@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import React from "react";
 import { Link } from "expo-router";
 import { Movie } from "@/interfaces/interfaces";
+import { LinearGradient } from "expo-linear-gradient";
 
 const getImageUrl = (
   poster_url: string | null | undefined,
@@ -28,22 +29,35 @@ const MoviesCard = ({
   name,
   slug,
   poster_url,
+  year,
 }: Movie) => {
   const imageUrl = getImageUrl(poster_url, created?.time ?? "");
+  
   return (
     <Link href={`/movies/${slug}`} asChild>
-      <TouchableOpacity style={{ width: "31%", marginBottom: 20 }}>
-        <Image
-          source={{ uri: imageUrl }}
-          style={{ width: "100%", height: 180, borderRadius: 10 }}
-          resizeMode="cover"
-        />
-        <Text
-          className="text-white font-bold mt-2 text-xs"
-          numberOfLines={2}
-        >
-          {name}
-        </Text>
+      <TouchableOpacity className="w-[48%] mb-5">
+        <View className="relative">
+          <Image
+            source={{ uri: imageUrl }}
+            className="w-full h-[130px] rounded-xl"
+            resizeMode="cover"
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.9)']}
+            className="absolute bottom-0 left-0 right-0 h-20 rounded-b-xl"
+          />
+          <View className="absolute bottom-2 left-2 right-2">
+            <Text
+              className="text-white font-semibold text-xs"
+              numberOfLines={2}
+            >
+              {name}
+            </Text>
+            <Text className="text-gray-300 text-xs mt-1">
+              {year || "N/A"}
+            </Text>
+          </View>
+        </View>
       </TouchableOpacity>
     </Link>
   );

@@ -94,3 +94,4 @@ interface ServerDaum {
   link_embed: string
   link_m3u8: string
 }
+

@@ -3,6 +3,7 @@ import React from "react";
 import { Tabs } from "expo-router";
 import { Icon } from "@/components/ui/icon";
 import {Heart, Home, HomeIcon, PersonStanding, Save, SaveAll, SaveIcon, Search, User} from "lucide-react-native"
+import { Ionicons } from "@expo/vector-icons";
 
 const _layout = () => {
   return (
@@ -38,7 +39,7 @@ const _layout = () => {
           headerShown: false,
           title: "Home",
           tabBarIcon: ({ focused }) => (
-            <Icon as={Home} color={focused ? "white" : "#A8B5DB"} size="xl" />
+            <Ionicons name="home" size={24} color={focused ? "white" : "#a8b5db"} />
           ),
         }}
       />
@@ -48,17 +49,17 @@ const _layout = () => {
           headerShown: false,
           title: "Search",
           tabBarIcon: ({ focused }) => (
-            <Icon as={Search} color={focused ? "white" : "#A8B5DB"} size="xl" />
+            <Ionicons name="search" size={24} color={focused ? "white" : "#a8b5db"} />
           ),
         }}
       />
       <Tabs.Screen
-        name="save"
+        name="discover"
         options={{
           headerShown: false,
-          title: "Saved",
+          title: "Discover",
           tabBarIcon: ({ focused }) => (
-            <Icon as={Heart} color={focused ? "white" : "#A8B5DB"} size="xl" />
+            <Ionicons name="grid-outline" size={24} color={focused ? "white" : "#a8b5db"} />
           ),
         }}
       />
@@ -68,7 +69,7 @@ const _layout = () => {
           headerShown: false,
           title: "Profile",
           tabBarIcon: ({ focused }) => (
-            <Icon as={User} color={focused ? "white" : "#A8B5DB"} size="xl" />
+            <Ionicons name="person-circle-outline" size={24} color={focused ? "white" : "#a8b5db"} />
           ),
         }}
       />

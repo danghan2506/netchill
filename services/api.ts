@@ -1,10 +1,10 @@
 import { Movie } from "@/interfaces/interfaces";
 
-export const KKPHIM_COFIG = {
+export const KKPHIM_CONFIG = {
   baseURL: "https://phimapi.com/",
 };
 export const fetchMovies = async (page: number) => {
-  const endpoint = `${KKPHIM_COFIG.baseURL}/danh-sach/phim-moi-cap-nhat-v3?page=${page}`;
+  const endpoint = `${KKPHIM_CONFIG.baseURL}/danh-sach/phim-moi-cap-nhat-v2?page=${page}`;
   const response = await fetch(endpoint, {
     method: "GET",
   });
@@ -15,7 +15,7 @@ export const fetchMovies = async (page: number) => {
   return data?.items || [];
 };
 export const fetchTrendingMovies = async (type_list: string,page: number, sort_field: string) => {
-  const endpoint = `${KKPHIM_COFIG.baseURL}/v1/api/the-loai/${type_list}?page=${page}&sort_field=${sort_field}`;
+  const endpoint = `${KKPHIM_CONFIG.baseURL}/v1/api/the-loai/${type_list}?page=${page}&sort_field=${sort_field}`;
   const response = await fetch(endpoint, {
     method: "GET",
   })
@@ -26,7 +26,7 @@ export const fetchTrendingMovies = async (type_list: string,page: number, sort_f
   return data.data.items || [];
 }
 export const searchMovies = async (keyword: string) :Promise<Movie[]> => {
-  const endpoint = `${KKPHIM_COFIG.baseURL}/v1/api/tim-kiem?keyword=${keyword}`;
+  const endpoint = `${KKPHIM_CONFIG.baseURL}/v1/api/tim-kiem?keyword=${keyword}`;
   const response = await fetch(endpoint, {
     method: "GET"});
   if(!response.ok){
@@ -37,7 +37,7 @@ export const searchMovies = async (keyword: string) :Promise<Movie[]> => {
   return data.data.items ?? []
 }
 export const fetchMoviesEpisodes = async (slug: string) => {
-  const endpoint = `${KKPHIM_COFIG.baseURL}/phim/${slug}`
+  const endpoint = `${KKPHIM_CONFIG.baseURL}/phim/${slug}`
   const response = await fetch(endpoint, {
     method: "GET",
   })
@@ -48,7 +48,7 @@ export const fetchMoviesEpisodes = async (slug: string) => {
   return data?.episodes?.[0]?.server_data || [];
 }
 export const fetchMovieDetails = async(slug: string) => {
-  const endpoint = `${KKPHIM_COFIG.baseURL}/phim/${slug}`
+  const endpoint = `${KKPHIM_CONFIG.baseURL}/phim/${slug}`
   const response = await fetch(endpoint , {
     method: "GET",
   })
@@ -60,8 +60,9 @@ export const fetchMovieDetails = async(slug: string) => {
   const data = await response.json()
   return data.movie || data
 }
+
 export const fetchMoviesByGenre = async (genre: string) => {
-  const endpoint = `${KKPHIM_COFIG}/v1/api/${genre}?page=1?`
+  const endpoint = `${KKPHIM_CONFIG}/v1/api/danh-sach/${genre}?page=1?`
   const response = await fetch(endpoint, {
     method: "GET"
   })
@@ -73,4 +74,3 @@ export const fetchMoviesByGenre = async (genre: string) => {
   const data = await response.json()
   return data.data.items || []
 }
-

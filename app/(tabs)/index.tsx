@@ -17,12 +17,18 @@ import useFetch from "@/services/useFetch";
 import { fetchMovies, fetchTrendingMovies } from "@/services/api";
 import MoviesCard from "@/components/movies/MoviesCard";
 import TrendingCard from "@/components/movies/TrendingCard";
-import Animated, { scrollTo, useAnimatedRef, useAnimatedScrollHandler, useDerivedValue, useSharedValue } from "react-native-reanimated";
-import * as ScreenOrientation from 'expo-screen-orientation';
-
+import Animated, {
+  scrollTo,
+  useAnimatedRef,
+  useAnimatedScrollHandler,
+  useDerivedValue,
+  useSharedValue,
+} from "react-native-reanimated";
+import * as ScreenOrientation from "expo-screen-orientation";
+import Genrebox from "@/components/Genrebox";
 const Index = () => {
   const router = useRouter();
-  const [isAutoPlay, setIsAutoPlay] = useState(true)
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
   const flatListRef = useRef<FlatList<any>>(null);
   useEffect(() => {
     // Khóa màn hình ở chế độ dọc khi component được mount
@@ -31,7 +37,7 @@ const Index = () => {
         ScreenOrientation.OrientationLock.PORTRAIT
       );
     };
-    
+
     lockPortrait();
 
     // Clean up khi component unmount
@@ -43,39 +49,57 @@ const Index = () => {
       unlockAll();
     };
   }, []);
-  
+
   const {
     data: trendingMovies,
     loading: trendingMoviesLoading,
     error: trendingMoviesError,
-  } = useFetch(() => fetchTrendingMovies("hanh-dong", 1, "modified.time"));
-  const scrollX = useSharedValue(0)
+  } = useFetch(() => fetchTrendingMovies("tinh-cam", 1, "modified.time"));
+  const scrollX = useSharedValue(0);
   const { width } = Dimensions.get("window");
   const {
     data: movies,
     loading: moviesLoading,
     error: moviesError,
-  } = useFetch(() => fetchMovies(1));
+  } = useFetch(() => fetchMovies(4));
   const onScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      scrollX.value = event.contentOffset.x
+      scrollX.value = event.contentOffset.x;
     },
   });
   useEffect(() => {
-      let interval: NodeJS.Timeout
-      if (isAutoPlay) {
-        interval = setInterval(() => {
+    let interval: NodeJS.Timeout;
+    if (isAutoPlay && trendingMovies?.length > 0) {
+      interval = setInterval(() => {
+        const nextIndex = Math.floor(scrollX.value / width) + 1;
+        const offsetX = nextIndex * width;
+
+        if (offsetX >= width * trendingMovies.length) {
+          // Reset về đầu nếu đã đến cuối
           flatListRef.current?.scrollToOffset({
-            offset: (scrollX.value + width) % (width * trendingMovies.length),
+            offset: 0,
             animated: true,
           });
-        }, 3000); // Tự động cuộn sau mỗi 3 giây
-      }
-  
-      return () => {
-        clearInterval(interval); // Dọn dẹp khi component unmount
-      };
-  }, [isAutoPlay, scrollX, trendingMovies])
+        } else {
+          flatListRef.current?.scrollToOffset({
+            offset: offsetX,
+            animated: true,
+          });
+        }
+      }, 3000);
+    }
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isAutoPlay, scrollX, trendingMovies]);
+
+  const getItemLayout = (data: any, index: number) => ({
+    length: width,
+    offset: width * index,
+    index,
+  });
+
   return (
     <View className="flex-1 bg-primary">
       <Image source={images.bg} className="absolute w-full z-0" />
@@ -96,49 +120,67 @@ const Index = () => {
               <SearchBar
                 onPress={() => router.push("/search")}
                 placeholder="Search for a movie you like!"
+                value=""
+                onChangeText={() => {}}
               />
             </View>
             <Text className="text-white text-2xl font-bold mb-5 mt-5 mx-5">
-                Đề xuất cho bạn
-              </Text>
-              <View style={styles.carouselContainer}>
-                <Animated.FlatList
+              Đề xuất cho bạn
+            </Text>
+            <View style={styles.carouselContainer}>
+              <Animated.FlatList
                 data={trendingMovies}
                 ref={flatListRef}
-                renderItem={({ item , index}) => <TrendingCard {...item} scrollX = {scrollX} index={index}/>}
+                renderItem={({ item, index }) => (
+                  <TrendingCard {...item} scrollX={scrollX} index={index} />
+                )}
                 keyExtractor={(item) => item._id.toString()}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 pagingEnabled
+                getItemLayout={getItemLayout}
                 contentContainerStyle={{
-                  alignItems: "center"
+                  alignItems: "center",
                 }}
                 removeClippedSubviews={false}
                 onScroll={onScrollHandler}
                 scrollEventThrottle={16}
+                onMomentumScrollEnd={(event) => {
+                  const offsetX = event.nativeEvent.contentOffset.x;
+                  const lastIndex = trendingMovies.length - 1;
+
+                  if (offsetX >= width * lastIndex) {
+                    // Nếu scroll tới phần tử cuối, reset về đầu
+                    flatListRef.current?.scrollToOffset({
+                      offset: 0,
+                      animated: false,
+                    });
+                  }
+                }}
                 onScrollBeginDrag={() => {
-                  setIsAutoPlay(false); // Tạm dừng AutoPlay khi người dùng cuộn
+                  setIsAutoPlay(false);
                 }}
                 onScrollEndDrag={() => {
-                  setIsAutoPlay(true); // Tiếp tục AutoPlay khi người dùng dừng cuộn
+                  setIsAutoPlay(true);
                 }}
               />
-              </View>
+            </View>
             <Text className="text-white text-2xl font-bold mb-5 mt-5 mx-5">
               Thịnh hành
             </Text>
             <FlatList
               data={movies}
-              renderItem={({ item }) => <MoviesCard {...item}/>}
+              renderItem={({ item }) => <MoviesCard {...item} />}
               keyExtractor={(item) => item._id.toString()}
-              numColumns={3}
+              numColumns={2}
               columnWrapperStyle={{
-                justifyContent: 'space-between', 
-                paddingHorizontal: 10, 
-                marginBottom: 5, 
+                justifyContent: "space-between",
+                paddingHorizontal: 20,
               }}
               scrollEnabled={false}
-              className="mt-5 pb-32"
+              contentContainerStyle={{
+                paddingBottom: 20,
+              }}
             />
           </>
         )}
@@ -149,9 +191,15 @@ const Index = () => {
 const styles = StyleSheet.create({
   carouselContainer: {
     width: "100%",
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-})
+  genreBoxContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+});
 
 export default Index;

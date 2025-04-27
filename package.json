@@ -21,6 +21,7 @@
     "@gluestack-ui/nativewind-utils": "^1.0.26",
     "@gluestack-ui/overlay": "^0.1.22",
     "@gluestack-ui/toast": "^1.0.9",
+    "@hookform/resolvers": "^5.0.1",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-masked-view/masked-view": "^0.3.2",
     "@react-navigation/bottom-tabs": "^7.2.0",
@@ -29,6 +30,7 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "dotenv": "^16.4.7",
     "expo": "~52.0.40",
+    "expo-av": "~15.0.2",
     "expo-blur": "~14.0.3",
     "expo-build-properties": "~0.13.2",
     "expo-constants": "~17.0.8",
@@ -49,6 +51,7 @@
     "nativewind": "^4.1.23",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "react-hook-form": "^7.56.1",
     "react-native": "0.76.7",
     "react-native-appwrite": "^0.7.2",
     "react-native-css-interop": "^0.1.22",
@@ -66,7 +69,7 @@
     "react-native-youtube": "^2.0.2",
     "react-native-youtube-iframe": "^2.3.0",
     "tailwindcss": "^3.4.17",
-    "expo-av": "~15.0.2"
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

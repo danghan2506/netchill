@@ -41,26 +41,37 @@ const TrendingCard = ({
   lang,
   index,
   scrollX,
-}: Movie & { index: number; scrollX: any }) => {
+  totalLength
+}: Movie & { index: number; scrollX: any; totalLength: number }) => {
   const rnAnimatedStyle = useAnimatedStyle(() => {
+    const inputRange = [
+      (index - 2) * width,
+      (index - 1) * width,
+      index * width,
+      (index + 1) * width,
+      (index + 2) * width,
+    ];
+
+    const outputRange = [-width * 0.25, 0, width * 0.25];
+    
+    const translateX = interpolate(
+      scrollX.value,
+      inputRange,
+      [-width * 0.25, -width * 0.25, 0, width * 0.25, width * 0.25],
+      Extrapolation.CLAMP
+    );
+
+    const scale = interpolate(
+      scrollX.value,
+      inputRange,
+      [0.9, 0.9, 1, 0.9, 0.9],
+      Extrapolation.CLAMP
+    );
+
     return {
       transform: [
-        {
-          translateX: interpolate(
-            scrollX.value,
-            [(index - 1) * width, index * width, (index + 1) * width],
-            [-width * 0.25, 0, width * 0.25],
-            Extrapolation.CLAMP
-          ),
-        },
-        {
-          scale: interpolate(
-            scrollX.value,
-            [(index - 1) * width, index * width, (index + 1) * width],
-            [0.9, 1, 0.9],
-            Extrapolation.CLAMP
-          ),
-        },
+        { translateX },
+        { scale }
       ],
     };
   });
