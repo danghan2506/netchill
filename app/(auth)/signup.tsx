@@ -8,7 +8,7 @@ import { signUpUsingEmailAndPassword } from '@/lib/firebase-auth'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod'
-
+import { handleAuthError } from '@/lib/error-handling'
 const signupSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email!').email('Email không hợp lệ!'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
@@ -20,7 +20,7 @@ const signupSchema = z.object({
 
 type SignupForm = z.infer<typeof signupSchema>;
 
-const signup = () => {
+const SignUp = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -40,12 +40,12 @@ const signup = () => {
         alert(result?.error?.message || 'Đăng ký thất bại');
       }
     } catch (error: any) {
-      alert('Đăng ký thất bại: ' + error.message);
+        const authError = handleAuthError(error);
+        alert(authError.message);
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <ImageBackground source={images.bg} className="flex-1 w-full h-full">
       <StatusBar barStyle="light-content" />
@@ -131,4 +131,4 @@ const signup = () => {
   );
 };
 
-export default signup;
+export default SignUp;

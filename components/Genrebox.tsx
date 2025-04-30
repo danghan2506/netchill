@@ -6,41 +6,50 @@ interface GenreBoxProps {
   title: string;
   colors: [string, string]; // Ví dụ: ['#ff7e5f', '#feb47b']
   onPress: () => void;
+  icon?: React.ReactNode; // Optional icon component
 }
 
-
-const Genrebox: React.FC<GenreBoxProps> = ({ title, colors, onPress }) => {
+const GenreBox: React.FC<GenreBoxProps> = ({ title, colors, onPress, icon }) => {
   return (
-    <TouchableOpacity onPress={onPress} className="rounded-xl m-2 overflow-hidden">
-    <LinearGradient colors={colors} className="p-4 rounded-xl">
-      <Text className="text-white font-bold text-lg">{title}</Text>
-    </LinearGradient>
-  </TouchableOpacity>
+    <TouchableOpacity onPress={onPress} style={styles.container}>
+      <LinearGradient 
+        colors={colors} 
+        style={styles.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        {icon && <View style={styles.iconContainer}>{icon}</View>}
+        <Text style={styles.text}>{title}</Text>
+      </LinearGradient>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  box: {
-    padding: 15,
+  container: {
+    width: '100%',
+    aspectRatio: 1, // Makes it a perfect square
+    margin: 5,
     borderRadius: 10,
-    alignItems: 'center',
+    overflow: 'hidden', // Ensures the gradient respects the border radius
+  },
+  gradient: {
+    width: '50%',
+    height: '100%',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-    width: 200,
-    height: 300, // For Android shadow
+    alignItems: 'center',
+    borderRadius: 10,
+    padding: 10,
+  },
+  iconContainer: {
+    marginBottom: 8,
   },
   text: {
     color: 'white',
     fontSize: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center',
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
-export default Genrebox;
+export default GenreBox;

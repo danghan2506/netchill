@@ -1,7 +1,8 @@
-import { Auth, getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut} from "firebase/auth";
+import { Auth, getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,signOut as firebaseSignOut} from "firebase/auth";
 import { formatPhoneNumber, isEmail, isPhone } from "./validation";
 import { getFirebaseErrorMessage } from "./error-handling";
-import { auth } from "@/FirebaseConfig";
+import { auth, db } from "@/FirebaseConfig";
+import { doc, setDoc, getDoc, serverTimestamp  } from "firebase/firestore";
 type AuthError = {
     code: string;
     message: string;
@@ -16,13 +17,12 @@ export const signInUsingEmailAndPassword = async (
     password: string,
 ) => {
     try {
-        const user = await signInWithEmailAndPassword(auth, email, password)
-        if(user) {
-            return {
-                success: true,
-                data: user,
-            } as AuthResult<any>;
-        }
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        return {
+            success: true,
+            data: user,
+        };
     }
     catch (error: any){
         const errorMessage = getFirebaseErrorMessage(error.code);
@@ -50,23 +50,30 @@ export const signUpUsingEmailAndPassword = async (
         } as AuthResult<any>;
     }
     try {
-        const user = await createUserWithEmailAndPassword(auth, email, password)
-        if(user) {
-            return {
-                success: true,
-                data: user,
-            } as AuthResult<any>;
-        }
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
+            name: '',
+            email: user.email,
+            profileUrl: '',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+        return {
+            success: true,
+            data: user,
+        };
     }
-    catch (error: any){
+    catch (error: any) {
         const errorMessage = getFirebaseErrorMessage(error.code);
         return {
             success: false,
             error: {
                 code: error.code,
                 message: errorMessage,
-            } as AuthError,
-        } as AuthResult<any>;
+            },
+        };
     }
 }
 export const signOut = async (): Promise<AuthResult<void>> => {

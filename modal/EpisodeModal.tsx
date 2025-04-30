@@ -9,10 +9,10 @@ import {
   Dimensions,
 } from "react-native";
 import { Icon } from "../components/ui/icon";
+
 const screenWidth = Dimensions.get("window").width;
 const gap = 10;
 const horizontalPadding = 20; // tổng padding 2 bên container
-
 
 interface EpisodeModalProps {
   visible: boolean;
@@ -27,6 +27,12 @@ const EpisodeModal: React.FC<EpisodeModalProps> = ({
   episodes,
   onEpisodeSelect,
 }) => {
+  // Tính toán width chính xác cho mỗi item
+  const numColumns = 4;
+const totalGap = gap * (numColumns - 1);
+const availableWidth = screenWidth - horizontalPadding * 2 - totalGap;
+const itemWidth = availableWidth / numColumns;
+
   return (
     <Modal
       visible={visible}
@@ -46,36 +52,35 @@ const EpisodeModal: React.FC<EpisodeModalProps> = ({
 
           {/* Episode List */}
           <FlatList
-  data={episodes}
-  keyExtractor={(item, index) => `${item.id}-${index}`}
-  numColumns={4}
-  renderItem={({ item }) => (
-    <TouchableOpacity
-      onPress={() => onEpisodeSelect(item)}
-      activeOpacity={0.8}
-      style={{
-        backgroundColor: "#2c2c2c",
-        paddingVertical: 12,
-        borderRadius: 14,
-        alignItems: "center",
-        justifyContent: "center",
-        width: "23%"
-      }}
-    >
-      <Text style={{ color: "white", fontSize: 16 }}>{item.name}</Text>
-    </TouchableOpacity>
-  )}
-  columnWrapperStyle={{
-    flexDirection: "row",
-    gap: gap,
-    marginBottom: 10,
-    paddingHorizontal: horizontalPadding / 2,
-  }}
-  contentContainerStyle={{
-    paddingBottom: 20,
-  }}
-  showsVerticalScrollIndicator={false}
-/>
+            data={episodes || []}
+            keyExtractor={(item, index) => `${item?.id || index}-${index}`}
+            numColumns={4}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  onClose();
+                  setTimeout(() => onEpisodeSelect(item), 200);
+                }}
+                activeOpacity={0.8}
+                style={{
+                  backgroundColor: "#2c2c2c",
+                  paddingVertical: 12,
+                  borderRadius: 14,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: itemWidth,
+                  marginBottom: 10,
+                  marginHorizontal: gap / 2,
+                }}
+              >
+                <Text style={{ color: "white", fontSize: 16 }}>{item?.name || `Tập ${index + 1}`}</Text>
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={{
+              paddingBottom: 20,
+            }}
+            showsVerticalScrollIndicator={false}
+          />
         </View>
       </View>
     </Modal>

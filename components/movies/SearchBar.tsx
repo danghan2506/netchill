@@ -3,16 +3,17 @@ import React from 'react'
 import { icons } from '@/constants/icons'
 import { Search } from 'lucide-react-native'
 import { Icon } from "../ui/icon";
+import { Ionicons } from '@expo/vector-icons';
 interface Props{
     onPress: () => void,
     placeholder: string,
     value: string,
-    onChangeText: (text:string) => void,
+    onChangeText?: (text:string) => void,
 }
 const SearchBar = ({onPress, placeholder, value, onChangeText}: Props) => {
   return (
     <View className='flex-row items-center bg-dark-200 rounded-full px-5 py-4'>
-        <Icon as={Search} ></Icon>
+        <Ionicons name='search-outline' color='white' size={24}/>
         <TextInput onPress={onPress} 
             placeholder={placeholder}
             value={value}

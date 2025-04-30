@@ -8,7 +8,7 @@ import { signInUsingEmailAndPassword } from '@/lib/firebase-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-
+import { useAuth } from '@/providers/auth-context';
 const loginSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email!').email('Email không hợp lệ!'),
   password: z.string().min(1, 'Vui lòng nhập mật khẩu!'),
@@ -16,11 +16,11 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-const login = () => {
+const Login = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
+  const { refreshUserData } = useAuth();
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
@@ -31,6 +31,7 @@ const login = () => {
     try {
       const result = await signInUsingEmailAndPassword(data.email, data.password);
       if (result?.success) {
+        await refreshUserData();
         router.replace('/(tabs)');
       } else {
         alert(result?.error?.message || 'Đăng nhập thất bại');
@@ -127,4 +128,4 @@ const login = () => {
   );
 };
 
-export default login;
+export default Login;

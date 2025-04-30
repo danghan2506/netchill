@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import "./global.css";
 import { getAuth } from "@firebase/auth";
+import { AuthProvider } from "@/providers/auth-context";
 export default function RootLayout() {
   const router = useRouter();
   getAuth().onAuthStateChanged((user) => {
@@ -13,7 +14,8 @@ export default function RootLayout() {
     }
   });
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <AuthProvider>
+      <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen
         name="(tabs)"
         options={{
@@ -26,5 +28,7 @@ export default function RootLayout() {
         }}
       />
     </Stack>
+    </AuthProvider>
+   
   );
 }

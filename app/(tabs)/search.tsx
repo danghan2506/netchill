@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router'
 import useFetch from '@/services/useFetch'
 import { fetchMovies, searchMovies } from '@/services/api'
 import { images } from '@/constants/images'
-import MoviesCard from '@/components/movies/MoviesCard'
+import MoviesCard from '@/components/movies/movie-card'
 import { icons } from '@/constants/icons'
 import SearchBar from '@/components/movies/SearchBar'
 const search = () => {
@@ -48,7 +48,7 @@ return (
             <Image source={icons.logo} className='w-12 h-10' resizeMode='contain'></Image>
           </View>
           <View className='my-5'>
-              <SearchBar placeholder='Search for a movie you like!' value={searchQuery} onChangeText={(text: string) => setSearchQuery(text)}/>
+              <SearchBar placeholder='Tìm kiếm những bộ phim mà bạn muốn!' value={searchQuery} onChangeText={(text: string) => setSearchQuery(text)}/>
           </View>
           {moviesLoading && (
             <ActivityIndicator size="large" color="#0000ff" />

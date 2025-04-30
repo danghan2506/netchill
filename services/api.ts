@@ -60,7 +60,19 @@ export const fetchMovieDetails = async(slug: string) => {
   const data = await response.json()
   return data.movie || data
 }
-
+export const fetchGenres = async () => {
+  const endpoint = `${KKPHIM_CONFIG}/the-loai`
+  const response = await fetch(endpoint, {
+    method: "GET"
+  })
+  if(!response.ok){
+    throw new Error(
+      `Error fetching movie details: ${response.statusText}`
+    )
+  }
+  const data = await response.json()
+  return data || []
+}
 export const fetchMoviesByGenre = async (genre: string) => {
   const endpoint = `${KKPHIM_CONFIG}/v1/api/danh-sach/${genre}?page=1?`
   const response = await fetch(endpoint, {

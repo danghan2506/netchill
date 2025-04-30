@@ -15,8 +15,8 @@ import { icons } from "@/constants/icons";
 import SearchBar from "@/components/movies/SearchBar";
 import useFetch from "@/services/useFetch";
 import { fetchMovies, fetchTrendingMovies } from "@/services/api";
-import MoviesCard from "@/components/movies/MoviesCard";
-import TrendingCard from "@/components/movies/TrendingCard";
+import MoviesCard from "@/components/movies/movie-card";
+import TrendingCard from "@/components/movies/trending-card";
 import Animated, {
   scrollTo,
   useAnimatedRef,

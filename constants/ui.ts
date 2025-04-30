@@ -1,0 +1,5 @@
+export const NETFLIX_RED = "#EE1520"; 
+export const LOADING = {
+    INDICATOR_COLOR: NETFLIX_RED,
+    REFRESH_BACKGROUND: "#121212",
+};
