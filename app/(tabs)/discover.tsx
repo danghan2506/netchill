@@ -1,85 +1,82 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Image,
-  ActivityIndicator,
   FlatList,
+  ActivityIndicator,
   Dimensions,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { fetchTrendingMovies } from "@/services/api";
-import useFetch from "@/services/useFetch";
-import { LOADING } from "@/constants/ui";
+import { fetchLatestMovies, fetchMoviesByGenre, fetchPopularMovies, fetchTrendingMovies } from "@/services/api";
+import MoviesCard from "@/components/movies/movie-card";
+import DiscoverModal from "@/components/modal/genre-modal";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const TRENDING_CATEGORIES = [
-  { id: "new", name: "Mới cập nhật", icon: "new-releases" },
-  { id: "popular", name: "Phổ biến", icon: "trending-up" },
-  { id: "top_rated", name: "Đánh giá cao", icon: "star" },
+  { id: "new", name: "Mới cập nhật", icon: "film-outline", fetchFunction:() =>  fetchLatestMovies() },
+  { id: "popular", name: "Phổ biến", icon: "trending-up", fetchFunction: () => fetchPopularMovies(1, "year", "desc") },
+  { id: "top_rated", name: "Đánh giá cao", icon: "star", fetchFunction: () => fetchTrendingMovies("gia-dinh", 1, "_id") },
 ];
-
-// Component hiển thị card phim
-const MovieCard = ({ item }) => {
-  return (
-    <TouchableOpacity className="w-[160px] h-[240px] rounded-xl overflow-hidden mb-4 mr-2 bg-zinc-800">
-      <Image
-        source={{ uri: item.poster || 'https://via.placeholder.com/160x240' }}
-        className="w-full h-full"
-        resizeMode="cover"
-      />
-      <LinearGradient
-        colors={["transparent", "rgba(0,0,0,0.8)"]}
-        className="absolute bottom-0 left-0 right-0 h-16 justify-end px-2 pb-2"
-      >
-        <Text className="text-white font-semibold text-sm" numberOfLines={1}>
-          {item.title}
-        </Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
+type genreModalProps = {
+  id: string,
+  name: string,
+  type: string,
+  slug?: string
+}
 
 const Discover = () => {
   const insets = useSafeAreaInsets();
-  const [activeTrendingCategory, setActiveTrendingCategory] = useState("new");
+  const [activeCategory, setActiveCategory] = useState("new");
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isFilterModalVisible, setFilterModalVisible] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<genreModalProps | null>(null);
+  const slugify = (name: string) =>
+    name
+      .toLowerCase()
+      .replace(/đ/g, "d") // xử lý riêng chữ đ
+      .normalize("NFD") // tách các dấu ra khỏi ký tự
+      .replace(/[\u0300-\u036f]/g, "") // loại bỏ dấu
+      .replace(/[^a-z0-9\s-]/g, "") // loại bỏ ký tự không hợp lệ
+      .replace(/\s+/g, "-") // thay khoảng trắng bằng dấu -
+      .replace(/-+/g, "-") // loại bỏ dấu - trùng
+      .replace(/^-+|-+$/g, ""); // loại bỏ dấu - đầu/cuối
   
-  // Gọi API để lấy dữ liệu phim trending
-  const {
-    data: trendingMovies,
-    loading: trendingMoviesLoading,
-    error: trendingMoviesError,
-  } = useFetch(() => fetchTrendingMovies("tinh-cam", 1, "modified.time"));
-
-  // Dữ liệu giả để demo
-  const demoMovies = [
-    { _id: "1", title: "Phim hành động 1", poster: "https://via.placeholder.com/160x240" },
-    { _id: "2", title: "Phim tình cảm 2", poster: "https://via.placeholder.com/160x240" },
-    { _id: "3", title: "Phim hồi hộp 3", poster: "https://via.placeholder.com/160x240" },
-    { _id: "4", title: "Phim hài hước 4", poster: "https://via.placeholder.com/160x240" },
-    { _id: "5", title: "Phim kinh dị 5", poster: "https://via.placeholder.com/160x240" },
-    { _id: "6", title: "Phim viễn tưởng 6", poster: "https://via.placeholder.com/160x240" },
-  ];
-
-  // Sử dụng dữ liệu API hoặc dữ liệu demo nếu API chưa sẵn sàng
-  const moviesData = trendingMovies && trendingMovies.length > 0 ? trendingMovies : demoMovies;
-
-  const handleTrendingCategoryChange = (categoryId) => {
-    if (categoryId !== activeTrendingCategory) {
-      setActiveTrendingCategory(categoryId);
-      // Đây là nơi lý tưởng để gọi API với category mới
+  const fetchMovies = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      let data = [];
+      if(selectedFilter){
+        const genreSlug = slugify(selectedFilter.name);
+        console.log(genreSlug)
+        data = await fetchMoviesByGenre(genreSlug);
+      }
+      else{
+        const fetchFunction = TRENDING_CATEGORIES.find(cat => cat.id === activeCategory)?.fetchFunction;
+        data = await fetchFunction?.() || [];
+      }
+      setMovies(data || []);
+      
+    } catch (err) {
+      setError("Không thể tải danh sách phim.");
+    } finally {
+      setLoading(false);
     }
   };
+  useEffect(() => {
+    fetchMovies();
+  }, [activeCategory, selectedFilter]);
 
-  // Render item cho FlatList
-  const renderItem = ({ item }) => <MovieCard item={item} />;
+  const handleCategoryChange = (categoryId: string) => {
+    setActiveCategory(categoryId); // useEffect sẽ tự gọi lại API
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#121218]" style={{ paddingTop: insets.top }}>
@@ -88,80 +85,86 @@ const Discover = () => {
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3">
         <Text className="text-2xl font-bold text-white">Khám phá</Text>
-        <TouchableOpacity className="flex-row items-center bg-zinc-600/50 px-4 py-2 rounded-full">
+        <TouchableOpacity className="flex-row items-center bg-zinc-600/50 px-4 py-2 rounded-full" onPress={() => setFilterModalVisible(true)}>
           <Ionicons name="filter" size={18} color="#fff" />
           <Text className="text-white ml-1.5 font-medium">Bộ lọc</Text>
         </TouchableOpacity>
+        <DiscoverModal
+        visible={isFilterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        hasActiveFilter={!!selectedFilter}
+        onSelect={(id, name, type) => {
+          setSelectedFilter({ id, name, type });
+          setFilterModalVisible(false);
+        }}
+        onUnselect={() => {
+          setSelectedFilter(null);
+          setFilterModalVisible(false);
+        }}
+      />
       </View>
 
-      <ScrollView 
-        className="flex-1" 
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
-      >
-        {/* Trending Section */}
-        <View className="pt-3 pb-6">
-          <Text className="text-lg font-semibold text-white mx-4 mb-3">Xu hướng</Text>
-
-          {/* Trending Category Tabs */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="px-4 pb-3"
+      {/* Tabs */}
+      <View className="flex-row justify-between px-4 py-2">
+        {TRENDING_CATEGORIES.map((category) => (
+          <TouchableOpacity
+            key={category.id}
+            className={`flex-row items-center px-4 py-2 rounded-full mr-2.5 ${
+              activeCategory === category.id ? "bg-[#EE1520]" : "bg-zinc-800/80"
+            }`}
+            onPress={() => handleCategoryChange(category.id)}
           >
-            {TRENDING_CATEGORIES.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                className={`flex-row items-center px-4 py-2 rounded-full mr-2.5 ${
-                  activeTrendingCategory === category.id
-                    ? "bg-[#FF5F6D]"
-                    : "bg-zinc-800/80"
-                }`}
-                onPress={() => handleTrendingCategoryChange(category.id)}
-              >
-                <MaterialIcons
-                  name={category.icon}
-                  size={16}
-                  color={activeTrendingCategory === category.id ? "#fff" : "#a1a1aa"}
-                />
-                <Text
-                  className={`ml-1.5 text-sm ${
-                    activeTrendingCategory === category.id
-                      ? "text-white"
-                      : "text-zinc-400"
-                  }`}
-                >
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+            <Ionicons name={category.icon} size={16} color={activeCategory === category.id ? "#fff" : "#a1a1aa"}/>
+            <Text
+              className={`ml-1.5 text-sm ${
+                activeCategory === category.id ? "text-white" : "text-zinc-400"
+              }`}
+            >
+              {category.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {selectedFilter?.name && (
+  <View className="flex-row items-center justify-between px-4 mt-1">
+    <Text className="text-sm text-zinc-400">
+      Lọc phim theo thể loại <Text className="text-white font-semibold">{selectedFilter.name}</Text>
+    </Text>
+    <TouchableOpacity
+      className="bg-zinc-700 px-3 py-1 rounded-full ml-2"
+      onPress={() => {
+        setSelectedFilter(null);
+        setActiveCategory("new");
+      }}
+    >
+      <Text className="text-white text-xs">Xóa lọc</Text>
+    </TouchableOpacity>
+  </View>
+)}
 
-          {/* Khu vực hiển thị phim */}
-          {trendingMoviesLoading ? (
-            <View className="h-60 justify-center items-center">
-              <ActivityIndicator size="large" color={LOADING.INDICATOR_COLOR || "#FF5F6D"} />
-            </View>
-          ) : trendingMoviesError ? (
-            <View className="h-60 justify-center items-center">
-              <Text className="text-[#FF5F6D] text-base">Không thể tải phim. Vui lòng thử lại sau.</Text>
-            </View>
-          ) : (
-            <View className="mt-2">
-              {/* Grid danh sách phim */}
-              <FlatList
-                data={moviesData}
-                renderItem={renderItem}
-                keyExtractor={(item) => item._id?.toString() || Math.random().toString()}
-                numColumns={2}
-                columnWrapperStyle={{ justifyContent: 'space-evenly' }}
-                contentContainerStyle={{ paddingHorizontal: 16 }}
-                scrollEnabled={false} // Không scroll vì đã nằm trong ScrollView
-              />
-            </View>
-          )}
+
+      {/* Movie List */}
+      {loading ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#FF5F6D" />
         </View>
-      </ScrollView>
+      ) : error ? (
+        <View className="flex-1 justify-center items-center">
+          <Text className="text-[#FF5F6D] text-base">{error}</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={movies}
+          renderItem={({ item }) => <MoviesCard {...item} />}
+          keyExtractor={(item) => item._id.toString()}
+          numColumns={2}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+            paddingHorizontal: 20,
+          }}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      )}
     </SafeAreaView>
   );
 };

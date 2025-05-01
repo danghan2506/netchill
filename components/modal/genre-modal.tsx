@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  TouchableOpacity, 
-  ScrollView, 
-  ActivityIndicator, 
+import {
+  View,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
   Dimensions,
   Modal,
   Text,
-  StyleSheet
+  StyleSheet,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,7 +15,7 @@ import { fetchGenres } from '@/services/api';
 import { LOADING } from '@/constants/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { MovieGenre, MovieType } from '@/types/movie-type';
+import { MovieGenre } from '@/types/movie-type';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_SIZE = (SCREEN_WIDTH * 0.85 - 48) / 3;
@@ -23,25 +23,24 @@ const ITEM_SIZE = (SCREEN_WIDTH * 0.85 - 48) / 3;
 interface DiscoverModalProps {
   visible: boolean;
   onClose: () => void;
-  onSelect: (id: string, name: string, type: 'genre' | 'type') => void;
+  onSelect: (id: string, name: string, type: 'genre') => void;
   onUnselect?: () => void;
   hasActiveFilter?: boolean;
 }
-
+// tạo một danh sách GENRE_ICONS để ánh xạ slug với tên của icon từ thư viện MaterialIcons:
 const GENRE_ICONS: Record<string, string> = {
-  'hanh-dong': 'local-fire-department',
+  'hanh-dong': 'electric-bolt',
   'mien-tay': 'landscape',
   'tre-em': 'child-care',
-  'lich-su': 'history-edu',
-  'co-trang': 'account-balance',
+  'lich-su': 'schedule',
+  'co-trang': 'elderly', 
   'chien-tranh': 'military-tech',
   'vien-tuong': 'rocket',
   'kinh-di': 'nights-stay',
-  'tai-lieu': 'assignment',
-  'bi-an': 'search',
-  'phim-18': '18-up-rating',
+  'tai-lieu': 'description',
+  'bi-an': 'key',
   'tinh-cam': 'favorite',
-  'tam-ly': 'psychology',
+  'tam-ly': 'psychology-alt',
   'the-thao': 'sports',
   'phieu-luu': 'explore',
   'am-nhac': 'music-note',
@@ -51,33 +50,21 @@ const GENRE_ICONS: Record<string, string> = {
   'hinh-su': 'gavel',
   'vo-thuat': 'sports-martial-arts',
   'khoa-hoc': 'science',
-  'than-thoai': 'auto-fix-high',
+  'than-thoai': 'auto-awesome',
   'chinh-kich': 'theater-comedy',
-  'kinh-dien': 'workspace-premium',
-  'default': 'category'
+  'kinh-dien': 'class',
 };
 
-const TYPE_ICONS: Record<string, string> = {
-  'tvshows': 'tv',
-  'series': 'live-tv',
-  'single': 'movie',
-  'hoathinh': 'animation',
-  'default': 'devices'
-};
-
-export default function DiscoverModal({ 
-  visible, 
-  onClose, 
-  onSelect, 
+export default function DiscoverModal({
+  visible,
+  onClose,
+  onSelect,
   onUnselect,
-  hasActiveFilter = false 
+  hasActiveFilter = false,
 }: DiscoverModalProps) {
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<'genres' | 'types'>('genres');
   const [genres, setGenres] = useState<MovieGenre[]>([]);
-  const [types, setTypes] = useState<MovieType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     if (visible) {
       fetchFilters();
@@ -88,23 +75,19 @@ export default function DiscoverModal({
     setIsLoading(true);
     try {
       const genresData = await fetchGenres();
-      setGenres(genresData);
-      // For now, set some dummy types until you implement real types
-      setTypes([
-        { id: 'tvshows', name: 'TV Shows', slug: 'tvshows' },
-        { id: 'series', name: 'Phim Bộ', slug: 'series' },
-        { id: 'single', name: 'Phim Lẻ', slug: 'single' },
-        { id: 'hoathinh', name: 'Hoạt Hình', slug: 'hoathinh' }
-      ]);
+      const filteredGenres = genresData.filter(
+        (genre) => genre.slug !== 'phim-18'
+      );
+      setGenres(filteredGenres);
     } catch (error) {
-      console.error("Error fetching filters:", error);
+      console.error('Error fetching filters:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSelect = (id: string, name: string, type: 'genre' | 'type') => {
-    onSelect(id, name, type);
+  const handleSelect = (id: string, name: string) => {
+    onSelect(id, name, 'genre');
     onClose();
   };
 
@@ -115,50 +98,24 @@ export default function DiscoverModal({
     }
   };
 
-  const getFilteredItems = () => {
-    return activeTab === 'genres' ? genres : types;
-  };
-
-  const getIconName = (name: string, slug: string, isGenre: boolean) => {
-    if (isGenre) {
-      return GENRE_ICONS[slug] || GENRE_ICONS.default;
-    } else {
-      return TYPE_ICONS[slug] || TYPE_ICONS.default;
-    }
-  };
-
-  const getGradientColors = (index: number, isGenre: boolean): [string, string] => {
-    if (isGenre) {
-      const palettes: [string, string][] = [
-        ['#FF5F6D', '#FFC371'],
-        ['#2193b0', '#6dd5ed'],
-        ['#834d9b', '#d04ed6'],
-        ['#4b6cb7', '#182848'],
-        ['#11998e', '#38ef7d'],
-        ['#FC466B', '#3F5EFB'],
-        ['#F09819', '#EDDE5D'],
-        ['#3A1C71', '#D76D77'],
-      ];
-      return palettes[index % palettes.length];
-    } else {
-      return ['#1A2980', '#26D0CE'];
-    }
+  const getGradientColors = (index: number): [string, string] => {
+    const palettes: [string, string][] = [
+      ['#FF5F6D', '#FFC371'],
+      ['#2193b0', '#6dd5ed'],
+      ['#834d9b', '#d04ed6'],
+      ['#4b6cb7', '#182848'],
+      ['#11998e', '#38ef7d'],
+      ['#FC466B', '#3F5EFB'],
+      ['#F09819', '#EDDE5D'],
+      ['#3A1C71', '#D76D77'],
+    ];
+    return palettes[index % palettes.length];
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
-        <TouchableOpacity 
-          style={styles.backdrop}
-          activeOpacity={1}
-          onPress={onClose}
-        />
-        
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
         <View style={styles.modalContainer}>
           <BlurView intensity={25} tint="dark" style={styles.blurView}>
             <LinearGradient
@@ -167,62 +124,11 @@ export default function DiscoverModal({
             >
               <View style={styles.modalHeader}>
                 <View style={styles.headerContent}>
-                  <TouchableOpacity 
-                    onPress={onClose}
-                    style={styles.closeButton}
-                  >
+                  <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                     <Ionicons name="close" size={20} color="#fff" />
                   </TouchableOpacity>
                 </View>
               </View>
-
-              <View style={styles.tabContainer}>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.tabScroll}
-                >
-                  <TouchableOpacity 
-                    style={[
-                      styles.tabButton,
-                      activeTab === 'genres' ? styles.activeTab : styles.inactiveTab
-                    ]}
-                    onPress={() => setActiveTab('genres')}
-                  >
-                    <Text style={[
-                      styles.tabText,
-                      activeTab === 'genres' ? styles.activeTabText : styles.inactiveTabText
-                    ]}>
-                      Thể loại
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[
-                      styles.tabButton,
-                      activeTab === 'types' ? styles.activeTab : styles.inactiveTab
-                    ]}
-                    onPress={() => setActiveTab('types')}
-                  >
-                    <Text style={[
-                      styles.tabText,
-                      activeTab === 'types' ? styles.activeTabText : styles.inactiveTabText
-                    ]}>
-                      Loại phim
-                    </Text>
-                  </TouchableOpacity>
-                  
-                  {hasActiveFilter && onUnselect && (
-                    <TouchableOpacity
-                      style={styles.unselectButton}
-                      onPress={handleUnselect}
-                    >
-                      <Ionicons name="close-circle-outline" size={16} color="#fff" />
-                      <Text style={styles.unselectText}>Bỏ chọn</Text>
-                    </TouchableOpacity>
-                  )}
-                </ScrollView>
-              </View>
-
               <View style={styles.contentContainer}>
                 {isLoading ? (
                   <View style={styles.loadingContainer}>
@@ -230,24 +136,23 @@ export default function DiscoverModal({
                     <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
                   </View>
                 ) : (
-                  <ScrollView 
+                  <ScrollView
                     style={styles.itemsScroll}
                     contentContainerStyle={[
                       styles.itemsContainer,
-                      { paddingBottom: insets.bottom || 20 }
+                      { paddingBottom: insets.bottom || 20 },
                     ]}
                     showsVerticalScrollIndicator={false}
                   >
-                    {getFilteredItems().map((item, index) => {
-                      const isGenre = activeTab === 'genres';
-                      const iconName = getIconName(item.name, item.slug, isGenre);
-                      const gradientColors = getGradientColors(index, isGenre);
-                      
+                    {genres.map((item, index) => {
+                      // hiển thị từng thể loại trong danh sách, bạn lấy icon tương ứng như sau:
+                      const iconName = GENRE_ICONS[item.slug] || GENRE_ICONS.default;
+                      const gradientColors = getGradientColors(index);
                       return (
                         <TouchableOpacity
-                          key={item.id}
+                          key={index}
                           activeOpacity={0.7}
-                          onPress={() => handleSelect(item.id, item.name, isGenre ? 'genre' : 'type')}
+                          onPress={() => handleSelect(item.id, item.name)}
                           style={styles.genreItem}
                         >
                           <LinearGradient
@@ -257,12 +162,10 @@ export default function DiscoverModal({
                             style={styles.genreGradient}
                           >
                             <View style={styles.iconContainer}>
+                              {/* hien thi icon */}
                               <MaterialIcons name={iconName as any} size={24} color="white" />
                             </View>
-                            <Text 
-                              style={styles.genreText}
-                              numberOfLines={2}
-                            >
+                            <Text style={styles.genreText} numberOfLines={2}>
                               {item.name}
                             </Text>
                           </LinearGradient>
@@ -281,6 +184,7 @@ export default function DiscoverModal({
 }
 
 const styles = StyleSheet.create({
+  // giữ nguyên toàn bộ styles không thay đổi...
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -329,39 +233,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabContainer: {
-    marginHorizontal: 20,
-    marginBottom: 12,
-  },
-  tabScroll: {
-    flexDirection: 'row',
-  },
-  tabButton: {
-    paddingVertical: 8,
+  unselectWrapper: {
     paddingHorizontal: 20,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  activeTab: {
-    backgroundColor: '#FF5F6D', // Use your primary color here
-  },
-  inactiveTab: {
-    backgroundColor: 'rgba(60,60,70,0.6)',
-  },
-  tabText: {
-    fontWeight: '500',
-  },
-  activeTabText: {
-    color: 'white',
-  },
-  inactiveTabText: {
-    color: '#a1a1aa', // zinc-400
+    marginBottom: 8,
   },
   unselectButton: {
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 20,
-    backgroundColor: 'rgba(82,82,91,0.8)', // zinc-700/80
+    backgroundColor: 'rgba(82,82,91,0.8)',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -380,7 +260,7 @@ const styles = StyleSheet.create({
     marginTop: 64,
   },
   loadingText: {
-    color: '#a1a1aa', // zinc-400
+    color: '#a1a1aa',
     marginTop: 12,
   },
   itemsScroll: {

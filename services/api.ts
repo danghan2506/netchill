@@ -61,7 +61,7 @@ export const fetchMovieDetails = async(slug: string) => {
   return data.movie || data
 }
 export const fetchGenres = async () => {
-  const endpoint = `${KKPHIM_CONFIG}/the-loai`
+  const endpoint = `${KKPHIM_CONFIG.baseURL}/the-loai`
   const response = await fetch(endpoint, {
     method: "GET"
   })
@@ -74,7 +74,7 @@ export const fetchGenres = async () => {
   return data || []
 }
 export const fetchMoviesByGenre = async (genre: string) => {
-  const endpoint = `${KKPHIM_CONFIG}/v1/api/danh-sach/${genre}?page=1?`
+  const endpoint = `${KKPHIM_CONFIG.baseURL}/v1/api/the-loai/${genre}?page=1`
   const response = await fetch(endpoint, {
     method: "GET"
   })
@@ -83,6 +83,27 @@ export const fetchMoviesByGenre = async (genre: string) => {
       `Error fetching movie details: ${response.statusText}`
     )
   }
+  const data = await response.json()
+  return data.data.items || []
+}
+export const fetchLatestMovies = async () => {
+  const endpoint = `${KKPHIM_CONFIG.baseURL}v1/api/danh-sach/phim-bo?page=1&sort_field=modified.time`
+  const response = await fetch(endpoint, {
+    method: "GET"
+  })
+  if(!response.ok){
+      throw new Error(
+        `Error fetching latest movies: ${response.statusText}`
+      )
+  }
+  const data = await response.json()
+  return data.data.items || [];
+}
+export const fetchPopularMovies = async (page: number, sort_field: string, sort_type: string) => {
+  const endpoint = `${KKPHIM_CONFIG.baseURL}v1/api/danh-sach/phim-bo?page=${page}&sort_field=${sort_field}&sort_type=${sort_type}`
+  const response = await fetch(endpoint, {
+    method: "GET"
+  })
   const data = await response.json()
   return data.data.items || []
 }

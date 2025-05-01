@@ -16,13 +16,14 @@ import useFetch from "@/services/useFetch";
 import { fetchMovieDetails, fetchMoviesEpisodes } from "@/services/api";
 import { Icon } from "@/components/ui/icon";
 import { X } from "lucide-react-native";
-import EpisodeModal from "@/modal/EpisodeModal";
+import EpisodeModal from "@/components/modal/episode-modal";
 import CustomVideoPlayer from "@/components/movies/video-player";
 import MovieInfo from "@/components/movies/movie-info";
 import MovieSummary from "@/components/movies/movie-summary";
 import MovieTrailer from "@/components/movies/movie-trailer";
 import MovieGenres from "@/components/movies/movie-genres";
 import LinearGradient from "expo-linear-gradient"
+import { ScrollView } from "react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -189,7 +190,7 @@ const Details = () => {
   
   // Main UI
   return (
-    <SafeAreaView className="bg-primary flex-1">
+    <ScrollView className="bg-primary flex-1">
         <MovieTrailer trailer_url={movie?.trailer_url} />
         <Text className="text-white text-2xl font-bold px-4 mt-4">
           {movie?.name ?? "Tên phim không xác định"}
@@ -222,7 +223,7 @@ const Details = () => {
           episodes={episode}
           onEpisodeSelect={handleEpisodeSelect}
         />
-    </SafeAreaView>
+    </ScrollView>
   );
 };
 

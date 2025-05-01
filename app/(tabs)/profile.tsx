@@ -1,22 +1,25 @@
 import { View, Text, TouchableOpacity, ScrollView, StatusBar, Alert, TextInput, ActivityIndicator, Image } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { auth, db } from '../../FirebaseConfig'
-import { Feather } from '@expo/vector-icons'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { signOut, updateProfile } from 'firebase/auth'
 import { useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
-
+type userInfoProps = {
+  email: string,
+  displayName: string,
+  uid: string,
+  profileUrl: string
+}
 const Profile = () => {
-  const [userInfo, setUserInfo] = useState<any>(null)
+  
+  const [userInfo, setUserInfo] = useState<userInfoProps | null>(null)
   const [editingName, setEditingName] = useState(false)
   const [newName, setNewName] = useState('')
   const [uploading, setUploading] = useState(false)
   const router = useRouter()
-
-  useEffect(() => {
-    fetchUserInfo()
-  }, [])
+  
 
   const fetchUserInfo = async () => {
     const user = auth.currentUser
@@ -28,12 +31,17 @@ const Profile = () => {
           email: data.email,
           displayName: data.name || 'Anonymous',
           uid: data.uid,
-          profileUrl: data.profileUrl || null,
-        })
+          profileUrl: data.profileUrl || "https://static.thenounproject.com/png/5034901-200.png",
+        }
+      )
         setNewName(data.name || '')
       }
+      
     }
   }
+  useEffect(() => {
+    fetchUserInfo()
+  }, [])
 
   const handleSignOut = async () => {
     Alert.alert('Confirm', 'Do you want to logout?', [
@@ -120,16 +128,13 @@ const Profile = () => {
       setUploading(false)
     }
   }
-  
-
   if (!userInfo) {
     return (
       <View className="flex-1 justify-center items-center bg-black">
-        <Text className="text-white">Đang tải thông tin người dùng...</Text>
+        <ActivityIndicator size="large" color="#fff" />
       </View>
-    )
+    );
   }
-
   return (
     <ScrollView className="flex-1 bg-black px-5 pt-10">
       <StatusBar barStyle="light-content" />
@@ -141,7 +146,9 @@ const Profile = () => {
               className="w-24 h-24 rounded-full"
             />
           ) : (
-            <Feather name="user" size={80} color="#E50914" />
+            <Image source={{uri: "https://static.thenounproject.com/png/5034901-200.png"}}
+              className='w-24 h-24 rounded-full'
+            ></Image>
           )}
         </TouchableOpacity>
         {uploading && <ActivityIndicator color="#fff" className="mt-2" />}
@@ -197,5 +204,10 @@ const Profile = () => {
     </ScrollView>
   )
 }
+
+  
+
+ 
+
 
 export default Profile

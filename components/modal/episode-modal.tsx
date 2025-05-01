@@ -8,7 +8,7 @@ import {
   FlatList,
   Dimensions,
 } from "react-native";
-import { Icon } from "../components/ui/icon";
+import { Icon } from "../ui/icon";
 
 const screenWidth = Dimensions.get("window").width;
 const gap = 10;

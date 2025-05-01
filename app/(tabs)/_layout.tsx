@@ -49,7 +49,7 @@ const Layout = () => {
           name="index"
           options={{
             headerShown: false,
-            title: "Home",
+            title: "Trang chủ",
             tabBarIcon: ({ focused }) => (
               <Ionicons
                 name="home"
@@ -63,7 +63,7 @@ const Layout = () => {
           name="search"
           options={{
             headerShown: false,
-            title: "Search",
+            title: "Tìm kiếm",
             tabBarIcon: ({ focused }) => (
               <Ionicons
                 name="search"
@@ -77,7 +77,7 @@ const Layout = () => {
           name="discover"
           options={{
             headerShown: false,
-            title: "Discover",
+            title: "Khám phá",
             tabBarIcon: ({ focused }) => (
               <Ionicons
                 name="grid-outline"
@@ -91,7 +91,7 @@ const Layout = () => {
           name="profile"
           options={{
             headerShown: false,
-            title: "Profile",
+            title: "Cá nhân",
             tabBarIcon: ({ focused }) => (
               <Ionicons
                 name="person-circle-outline"

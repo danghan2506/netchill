@@ -119,7 +119,7 @@ const Index = () => {
               {/* push to different URL */}
               <SearchBar
                 onPress={() => router.push("/search")}
-                placeholder="Search for a movie you like!"
+                placeholder="Tìm kiếm những bộ phim mà bạn muốn!"
                 value=""
                 onChangeText={() => {}}
               />
