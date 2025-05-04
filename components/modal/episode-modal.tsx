@@ -7,12 +7,11 @@ import {
   TouchableOpacity,
   FlatList,
   Dimensions,
+  StyleSheet,
 } from "react-native";
 import { Icon } from "../ui/icon";
 
 const screenWidth = Dimensions.get("window").width;
-const gap = 10;
-const horizontalPadding = 20; // tổng padding 2 bên container
 
 interface EpisodeModalProps {
   visible: boolean;
@@ -27,11 +26,15 @@ const EpisodeModal: React.FC<EpisodeModalProps> = ({
   episodes,
   onEpisodeSelect,
 }) => {
-  // Tính toán width chính xác cho mỗi item
   const numColumns = 4;
-const totalGap = gap * (numColumns - 1);
-const availableWidth = screenWidth - horizontalPadding * 2 - totalGap;
-const itemWidth = availableWidth / numColumns;
+  const modalWidth = screenWidth * 0.9; // 90% của chiều rộng màn hình
+  const contentPadding = 20; // Padding nội dung
+  const gap = 8; // Khoảng cách giữa các ô
+  
+  // Tính toán lại kích thước từng ô
+  const totalGapWidth = gap * (numColumns - 1);
+  const availableWidth = modalWidth - contentPadding * 2 - totalGapWidth;
+  const itemWidth = availableWidth / numColumns;
 
   return (
     <Modal
@@ -40,12 +43,12 @@ const itemWidth = availableWidth / numColumns;
       transparent={true}
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/60 justify-center items-center">
-        <View className="w-[90%] bg-[#0e0e0e] rounded-2xl px-5 pt-3 pb-5">
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContainer, { width: modalWidth }]}>
           {/* Header */}
-          <View className="flex-row items-center justify-between mb-5">
-            <Text className="text-xl font-bold text-white text-center">Danh sách tập phim</Text>
-            <TouchableOpacity onPress={onClose} className="p-2">
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Danh sách tập phim</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Icon as={X} size="md" color="white" />
             </TouchableOpacity>
           </View>
@@ -54,29 +57,30 @@ const itemWidth = availableWidth / numColumns;
           <FlatList
             data={episodes || []}
             keyExtractor={(item, index) => `${item?.id || index}-${index}`}
-            numColumns={4}
+            numColumns={numColumns}
             renderItem={({ item, index }) => (
               <TouchableOpacity
                 onPress={() => {
                   onClose();
                   setTimeout(() => onEpisodeSelect(item), 200);
                 }}
-                activeOpacity={0.8}
-                style={{
-                  backgroundColor: "#2c2c2c",
-                  paddingVertical: 12,
-                  borderRadius: 14,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: itemWidth,
-                  marginBottom: 10,
-                  marginHorizontal: gap / 2,
-                }}
+                activeOpacity={0.7}
+                style={[
+                  styles.episodeItem,
+                  {
+                    width: itemWidth,
+                    marginRight: (index + 1) % numColumns === 0 ? 0 : gap,
+                    marginBottom: gap,
+                  },
+                ]}
               >
-                <Text style={{ color: "white", fontSize: 16 }}>{item?.name || `Tập ${index + 1}`}</Text>
+                <Text style={styles.episodeText}>
+                  {item?.name || `Tập ${index + 1}`}
+                </Text>
               </TouchableOpacity>
             )}
             contentContainerStyle={{
+              paddingHorizontal: contentPadding,
               paddingBottom: 20,
             }}
             showsVerticalScrollIndicator={false}
@@ -86,5 +90,54 @@ const itemWidth = availableWidth / numColumns;
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#0e0e0e',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
+    maxHeight: '80%',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    paddingVertical: 4,
+    position: 'relative',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+  },
+  closeButton: {
+    padding: 6,
+    position: 'absolute',
+    right: 0,
+  },
+  episodeItem: {
+    backgroundColor: '#2c2c2c',
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  episodeText: {
+    color: 'white',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+});
 
 export default EpisodeModal;

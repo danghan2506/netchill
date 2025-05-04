@@ -79,7 +79,7 @@ const Discover = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#121218]" style={{ paddingTop: insets.top }}>
+    <SafeAreaView className="flex-1 bg-primary" style={{ paddingTop: insets.top }}>
       <StatusBar barStyle="light-content" />
 
       {/* Header */}

@@ -110,13 +110,14 @@ const Index = () => {
       >
         <Image source={icons.logo} className="w-12 h-10 mt-20 mb-5 mx-auto" />
         {moviesLoading ? (
-          <ActivityIndicator size="large" color="#000" className="mt-20" />
+          <ActivityIndicator size="large" color="#fff" className="mt-20" />
         ) : moviesError ? (
           <Text className="text-white text-center mt-20">{moviesError}</Text>
         ) : (
           <>
             <View className="flex-1 mt-5">
               {/* push to different URL */}
+              
               <SearchBar
                 onPress={() => router.push("/search")}
                 placeholder="Tìm kiếm những bộ phim mà bạn muốn!"

@@ -2,17 +2,6 @@ import { View, Text, ImageBackground, Image } from "react-native";
 import React from "react";
 import { Tabs } from "expo-router";
 import { Icon } from "@/components/ui/icon";
-import {
-  Heart,
-  Home,
-  HomeIcon,
-  PersonStanding,
-  Save,
-  SaveAll,
-  SaveIcon,
-  Search,
-  User,
-} from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {AuthProvider} from "@/providers/auth-context";
 

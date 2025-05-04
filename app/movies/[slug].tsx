@@ -24,6 +24,8 @@ import MovieTrailer from "@/components/movies/movie-trailer";
 import MovieGenres from "@/components/movies/movie-genres";
 import LinearGradient from "expo-linear-gradient"
 import { ScrollView } from "react-native";
+import MovieMetaData from "@/components/movies/movie-metada";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
@@ -197,17 +199,22 @@ const Details = () => {
         </Text>
         <View className="px-4">
           <MovieInfo year={movie?.year} quality={movie?.quality} time={movie?.time} lang={movie?.lang} />
-          <Text className="text-white text-lg font-bold mt-6 mb-2">Thể loại</Text>
+          <Text className="text-white text-lg font-bold mt-3 mb-2">Thể loại</Text>
           <MovieGenres genres={movie?.category} />
-          <Text className="text-white text-lg font-bold mt-6 mb-2">Nội dung</Text>
-          <MovieSummary content={movie?.content} />
           <TouchableOpacity
             activeOpacity={0.8}
-            className="bg-[#EE1520] rounded-full py-3 mt-6 items-center shadow-md shadow-red-500/50"
+            className="bg-[#EE1520] rounded-md py-3 mt-6 items-center shadow-md shadow-red-500/50"
             onPress={handleOpenModal}
           >
-            <Text className="text-white font-bold text-base">Xem phim</Text>
+            <View className="flex-row items-center space-x-5">
+    <Ionicons name="play" size={20} color="white" />
+    <Text className="text-white font-bold text-base">Xem phim</Text>
+  </View>
           </TouchableOpacity>
+          <Text className="text-white text-lg font-bold mt-6 mb-2">Nội dung</Text>
+          <MovieSummary content={movie?.content} />
+          <MovieMetaData countries={movie?.country} categories={movie?.category} directors={movie?.director} actors={movie?.actor} />
+         
         </View>
         <View className="absolute top-12 right-5 z-10">
           <TouchableOpacity
