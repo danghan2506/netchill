@@ -9,12 +9,12 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyA8z5EFg14hoIk_UD-J13u7b1Sz46R96Hg",
-  authDomain: "cozy-movies-testing.firebaseapp.com",
-  projectId: "cozy-movies-testing",
-  storageBucket: "cozy-movies-testing.firebasestorage.app",
-  messagingSenderId: "68520793453",
-  appId: "1:68520793453:web:b11ec807469ec719ca7664"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID
 };
 
 // Initialize Firebase

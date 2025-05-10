@@ -22,7 +22,7 @@ import MovieInfo from "@/components/movies/movie-info";
 import MovieSummary from "@/components/movies/movie-summary";
 import MovieTrailer from "@/components/movies/movie-trailer";
 import MovieGenres from "@/components/movies/movie-genres";
-import LinearGradient from "expo-linear-gradient"
+import LinearGradient from "expo-linear-gradient";
 import { ScrollView } from "react-native";
 import MovieMetaData from "@/components/movies/movie-metada";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,9 +38,9 @@ const Details = () => {
   interface Episode {
     id: string;
     link_m3u8: string;
-    name: string,
+    name: string;
   }
-  
+
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showEpisodePlayer, setShowEpisodePlayer] = useState(false);
@@ -70,18 +70,29 @@ const Details = () => {
   }, [slug]);
 
   // Handle fullscreen changes
-  const onFullScreenChange = useCallback((fullscreen: boolean | ((prevState: boolean) => boolean)) => {
-    try {
-      setIsFullScreen(typeof fullscreen === 'function' ? fullscreen(isFullScreen) : fullscreen);
-      ScreenOrientation.lockAsync(
-        typeof fullscreen === 'function' ? 
-          (fullscreen(isFullScreen) ? ScreenOrientation.OrientationLock.LANDSCAPE : ScreenOrientation.OrientationLock.PORTRAIT_UP) :
-          (fullscreen ? ScreenOrientation.OrientationLock.LANDSCAPE : ScreenOrientation.OrientationLock.PORTRAIT_UP)
-      ).catch(err => console.error("Orientation change error:", err));
-    } catch (err) {
-      console.error("Error in fullscreen change:", err);
-    }
-  }, [isFullScreen]);
+  const onFullScreenChange = useCallback(
+    (fullscreen: boolean | ((prevState: boolean) => boolean)) => {
+      try {
+        setIsFullScreen(
+          typeof fullscreen === "function"
+            ? fullscreen(isFullScreen)
+            : fullscreen
+        );
+        ScreenOrientation.lockAsync(
+          typeof fullscreen === "function"
+            ? fullscreen(isFullScreen)
+              ? ScreenOrientation.OrientationLock.LANDSCAPE
+              : ScreenOrientation.OrientationLock.PORTRAIT_UP
+            : fullscreen
+            ? ScreenOrientation.OrientationLock.LANDSCAPE
+            : ScreenOrientation.OrientationLock.PORTRAIT_UP
+        ).catch((err) => console.error("Orientation change error:", err));
+      } catch (err) {
+        console.error("Error in fullscreen change:", err);
+      }
+    },
+    [isFullScreen]
+  );
 
   // Handle back button for fullscreen
   useEffect(() => {
@@ -110,10 +121,11 @@ const Details = () => {
     return () => {
       setShowEpisodePlayer(false);
       setSelectedEpisode(null);
-      
+
       try {
-        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)
-          .catch(err => console.error("Error resetting orientation:", err));
+        ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT_UP
+        ).catch((err) => console.error("Error resetting orientation:", err));
       } catch (err) {
         console.error("Error in cleanup:", err);
       }
@@ -128,19 +140,20 @@ const Details = () => {
   const handleEpisodeSelect = (item: Episode) => {
     // Close modal first
     setIsModalVisible(false);
-    
+
     // Wait for modal to fully close before proceeding
     setTimeout(() => {
       try {
         if (item && item.link_m3u8) {
-          console.log("Selected episode:", item.name, item.link_m3u8);
           setSelectedEpisode(item);
           setShowEpisodePlayer(true);
-          
+
           // Try to change orientation
-          ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)
+          ScreenOrientation.lockAsync(
+            ScreenOrientation.OrientationLock.LANDSCAPE
+          )
             .then(() => setIsFullScreen(true))
-            .catch(err => console.error("Orientation error:", err));
+            .catch((err) => console.error("Orientation error:", err));
         } else {
           console.error("Invalid episode or missing link:", item);
         }
@@ -155,7 +168,7 @@ const Details = () => {
     try {
       setShowEpisodePlayer(false);
       setIsFullScreen(false);
-      
+
       // Reset orientation first
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)
         .then(() => {
@@ -164,7 +177,7 @@ const Details = () => {
             setSelectedEpisode(null);
           }, 100);
         })
-        .catch(err => console.error("Error resetting orientation:", err));
+        .catch((err) => console.error("Error resetting orientation:", err));
     } catch (err) {
       console.error("Error closing episode player:", err);
     }
@@ -181,7 +194,10 @@ const Details = () => {
 
   // Fullscreen player
   if (showEpisodePlayer && selectedEpisode && selectedEpisode.link_m3u8) {
-    console.log("Rendering video player with source:", selectedEpisode.link_m3u8);
+    console.log(
+      "Rendering video player with source:",
+      selectedEpisode.link_m3u8
+    );
     return (
       <CustomVideoPlayer
         source={selectedEpisode.link_m3u8}
@@ -189,47 +205,61 @@ const Details = () => {
       />
     );
   }
-  
+
   // Main UI
   return (
     <ScrollView className="bg-primary flex-1">
-        <MovieTrailer trailer_url={movie?.trailer_url} />
-        <Text className="text-white text-2xl font-bold px-4 mt-4">
-          {movie?.name ?? "Tên phim không xác định"}
-        </Text>
-        <View className="px-4">
-          <MovieInfo year={movie?.year} quality={movie?.quality} time={movie?.time} lang={movie?.lang} />
-          <Text className="text-white text-lg font-bold mt-3 mb-2">Thể loại</Text>
-          <MovieGenres genres={movie?.category} />
-          <TouchableOpacity
-            activeOpacity={0.8}
-            className="bg-[#EE1520] rounded-md py-3 mt-6 items-center shadow-md shadow-red-500/50"
-            onPress={handleOpenModal}
-          >
-            <View className="flex-row items-center space-x-5">
-    <Ionicons name="play" size={20} color="white" />
-    <Text className="text-white font-bold text-base">Xem phim</Text>
-  </View>
-          </TouchableOpacity>
-          <Text className="text-white text-lg font-bold mt-6 mb-2">Nội dung</Text>
-          <MovieSummary content={movie?.content} />
-          <MovieMetaData countries={movie?.country} categories={movie?.category} directors={movie?.director} actors={movie?.actor} />
-         
-        </View>
-        <View className="absolute top-12 right-5 z-10">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="bg-black/60 p-2 rounded-full"
-          >
-            <Icon as={X} size="md" color="white" />
-          </TouchableOpacity>
-        </View>
-        <EpisodeModal
-          visible={isModalVisible}
-          onClose={handleCloseModal}
-          episodes={episode}
-          onEpisodeSelect={handleEpisodeSelect}
+      <MovieTrailer trailer_url={movie?.trailer_url} />
+      <Text className="text-white text-2xl font-bold px-4 mt-4">
+        {movie?.name ?? "Tên phim không xác định"}
+      </Text>
+      <View className="px-4">
+        <MovieInfo
+          year={movie?.year}
+          quality={movie?.quality}
+          time={movie?.time}
+          lang={movie?.lang}
         />
+        <Text className="text-white text-lg font-bold mt-3 mb-2">Thể loại</Text>
+        <MovieGenres genres={movie?.category} />
+        <TouchableOpacity
+          activeOpacity={0.8}
+          className="bg-[#EE1520] rounded-md py-3 mt-6 items-center shadow-md shadow-red-500/50"
+          onPress={handleOpenModal}
+        >
+          <View className="flex-row items-center space-x-5">
+            <Ionicons name="play" size={20} color="white" />
+            <Text className="text-white font-bold text-base">Xem phim</Text>
+          </View>
+        </TouchableOpacity>
+        <Text className="text-white text-lg font-bold mt-6 mb-2">Nội dung</Text>
+        <MovieSummary content={movie?.content} />
+        <MovieMetaData
+          countries={movie?.country}
+          categories={movie?.category}
+          directors={movie?.director}
+          actors={movie?.actor}
+        />
+        <TouchableOpacity onPress={() => <Text>Downloading: `${movie.link_m3u8}`</Text>}>
+            <Ionicons name="download"/>
+            <Text className="text-white text-lg font-bold mt-6 mb-2">Tải phim</Text>
+            
+        </TouchableOpacity>
+      </View>
+      <View className="absolute top-12 right-5 z-10">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="bg-black/60 p-2 rounded-full"
+        >
+          <Icon as={X} size="md" color="white" />
+        </TouchableOpacity>
+      </View>
+      <EpisodeModal
+        visible={isModalVisible}
+        onClose={handleCloseModal}
+        episodes={episode}
+        onEpisodeSelect={handleEpisodeSelect}
+      />
     </ScrollView>
   );
 };

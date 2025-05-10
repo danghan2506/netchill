@@ -76,6 +76,20 @@ const Layout = () => {
             ),
           }}
         />
+         <Tabs.Screen
+          name="downloaded"
+          options={{
+            headerShown: false,
+            title: "Tải xuống",
+            tabBarIcon: ({ focused }) => (
+              <Ionicons
+                name="download-outline"
+                size={24}
+                color={focused ? "white" : "#a8b5db"}
+              />
+            ),
+          }}
+        />
         <Tabs.Screen
           name="profile"
           options={{

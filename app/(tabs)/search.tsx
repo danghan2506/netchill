@@ -53,7 +53,7 @@ return (
               <SearchBar placeholder='Tìm kiếm những bộ phim mà bạn muốn!' value={searchQuery} onChangeText={(text: string) => setSearchQuery(text)} onPress={() => {}}/>
           </View>
           {moviesLoading && (
-           <ActivityIndicator size="large" color="#E50914" />
+           <MaterialIcons name='movie-filter' color="white" size={24} />
           )}
           {moviesError && (
             <Text className='text-red-500 text-center px-5 my-5'>Error: {moviesError}</Text>

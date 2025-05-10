@@ -7,8 +7,29 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
+interface EpisodeData {
+  name: string;
+  slug: string;
+  filename: string;
+  link_embed: string;
+  link_m3u8: string;
+}
+
+interface ServerData {
+  server_name: string;
+  server_data: EpisodeData[];
+}
+
+interface VideoSource {
+  title?: string;
+  url: string;
+  episodes?: {
+    server_data: EpisodeData[];
+  };
+}
+
 type VideoPlayerProps = {
-  source: string;
+  source: VideoSource;
   onBack?: () => void;
 };
 
@@ -18,7 +39,15 @@ const CustomVideoPlayer = ({ source, onBack }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);   const getDisplayTitle = () => {
+    if (source?.episodes?.server_data) {
+      const currentEpisode = source.episodes.server_data.find(
+        episode => episode.link_m3u8 === source.url
+      );
+      return currentEpisode?.name || '';
+    }
+    return source?.title || '';
+  };
 
   // Định dạng thời gian thành MM:SS
   const formatTime = (seconds: number) => {
@@ -111,20 +140,32 @@ const CustomVideoPlayer = ({ source, onBack }: VideoPlayerProps) => {
     };
   }, []);
 
+  
+  
+
+  
+
+  // Update the layout to place episode navigation buttons in the same row as video controls
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar hidden={isFullscreen} />
+
+      {/* Episode Header */}
+      {showControls && (
+  <View style={styles.episodeHeader}>
+    <Text style={styles.episodeText}>{getDisplayTitle()}</Text>
+  </View>
+)}
 
       {/* Video component */}
       <TouchableOpacity
         activeOpacity={1}
         style={styles.videoContainer}
         onPress={handleVideoPress}
-      >
-        <Video
+      >        <Video
           ref={videoRef}
           style={styles.video}
-          source={{ uri: source }}
+          source={{ uri: source.url }}
           resizeMode={ResizeMode.CONTAIN}
           shouldPlay={true}
           isLooping={true}
@@ -145,21 +186,23 @@ const CustomVideoPlayer = ({ source, onBack }: VideoPlayerProps) => {
 
           {/* Center Controls */}
           <View className='flex-1 justify-center items-center'>
-          <View style={styles.centerControls}>
-            <TouchableOpacity onPress={rewind} style={styles.controlButton}>
-              <Ionicons name="play-back" size={28} color="white" />
-            </TouchableOpacity>
+            <View style={styles.centerControls}>
+              
 
-            <TouchableOpacity onPress={togglePlayPause} style={styles.playPauseButton}>
-              <Ionicons name={isPlaying ? "pause" : "play"} size={28} color="white" />
-            </TouchableOpacity>
+              <TouchableOpacity onPress={rewind} style={styles.controlButton}>
+                <Ionicons name="play-back" size={28} color="white" />
+              </TouchableOpacity>
 
-            <TouchableOpacity onPress={forward} style={styles.controlButton}>
-              <Ionicons name="play-forward" size={28} color="white" />
-            </TouchableOpacity>
+              <TouchableOpacity onPress={togglePlayPause} style={styles.playPauseButton}>
+                <Ionicons name={isPlaying ? "pause" : "play"} size={28} color="white" />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={forward} style={styles.controlButton}>
+                <Ionicons name="play-forward" size={28} color="white" />
+              </TouchableOpacity>
+
+            </View>
           </View>
-          </View>
-          
 
           {/* Bottom Controls */}
           <View style={styles.bottomControls}>
@@ -180,7 +223,7 @@ const CustomVideoPlayer = ({ source, onBack }: VideoPlayerProps) => {
                   }
                 }}
               />
-              
+
               {/* Time Display */}
               <View style={styles.timeDisplay}>
                 <Text style={styles.timeText}>
@@ -200,12 +243,12 @@ const CustomVideoPlayer = ({ source, onBack }: VideoPlayerProps) => {
               >
                 <Text style={styles.speedText}>{playbackRate}x</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity style={styles.fullscreenButton} onPress={toggleFullscreen}>
                 <Ionicons name={isFullscreen ? "contract" : "expand"} size={22} color="white" />
               </TouchableOpacity>
             </View>
-            
+
             {/* Speed Selection Modal */}
             {showSpeedModal && (
               <View style={styles.speedModalOverlay}>
@@ -244,6 +287,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  episodeHeader: {
+    position: 'absolute',
+    top: 0,
+    width: '100%',
+    padding: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    zIndex: 10,
+  },
+  episodeText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   videoContainer: {
     flex: 1,
@@ -372,7 +429,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#00aced',
   },
-
+  episodeNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  episodeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 12,
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
 });
 
 export default CustomVideoPlayer;
