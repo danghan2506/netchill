@@ -18,9 +18,9 @@ import DiscoverModal from "@/components/modal/genre-modal";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const TRENDING_CATEGORIES = [
-  { id: "new", name: "Mới cập nhật", icon: "film-outline", fetchFunction:() =>  fetchLatestMovies() },
-  { id: "popular", name: "Phổ biến", icon: "trending-up", fetchFunction: () => fetchPopularMovies(1, "year", "desc") },
-  { id: "top_rated", name: "Đánh giá cao", icon: "star", fetchFunction: () => fetchTrendingMovies("gia-dinh", 1, "_id") },
+  { id: "new", name: "Mới cập nhật", icon: "film-outline" as const, fetchFunction:() =>  fetchLatestMovies() },
+  { id: "popular", name: "Phổ biến", icon: "trending-up" as const, fetchFunction: () => fetchPopularMovies(1, "year", "desc") },
+  { id: "top_rated", name: "Đánh giá cao", icon: "star" as const, fetchFunction: () => fetchTrendingMovies("gia-dinh", 1, "_id") },
 ];
 type genreModalProps = {
   id: string,
@@ -146,7 +146,7 @@ const Discover = () => {
       {/* Movie List */}
       {loading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#FF5F6D" />
+          <ActivityIndicator size="large" color="#EE1520" />
         </View>
       ) : error ? (
         <View className="flex-1 justify-center items-center">
@@ -159,10 +159,13 @@ const Discover = () => {
           keyExtractor={(item) => item._id.toString()}
           numColumns={2}
           columnWrapperStyle={{
-            justifyContent: "space-between",
-            paddingHorizontal: 20,
-          }}
-          contentContainerStyle={{ paddingBottom: 20 }}
+                justifyContent: "space-between",
+                paddingHorizontal: 20,
+              }}
+              scrollEnabled={true}
+              contentContainerStyle={{
+                paddingBottom: 20,
+              }}
         />
       )}
     </SafeAreaView>

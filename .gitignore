@@ -30,9 +30,9 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+*.env
 # ignore firebaseConfig
-.FirebaseConfig.ts
+*.FirebaseConfig.ts
 # typescript
 *.tsbuildinfo
 

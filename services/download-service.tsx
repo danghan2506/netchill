@@ -22,7 +22,7 @@ const handleConnectionChange = (state: NetInfoState) => {
     if (previousState && !isConnected) {
         const activeDownloads = StorageService.getAllDownloadTasks().filter(
             (task) =>
-                task.status === DownloadStatus.PENDING &&
+                task.status === DownloadStatus.DOWNLOADING &&
                 (task.ffmpegSessionId || task.downloadResumable)
         );
         activeDownloads.forEach(async (task) => {
@@ -57,7 +57,7 @@ const processNextDownload = () => {
 
     const waitingTasks = StorageService.getAllDownloadTasks().filter(
         (task) =>
-            task.status === DownloadStatus.PENDING &&
+            task.status === DownloadStatus.DOWNLOADING &&
             !task.ffmpegSessionId &&
             !task.downloadResumable
     );
@@ -75,7 +75,7 @@ const processNextDownload = () => {
 // mp4 download 
 const startDirectDownload = async (taskId: string) => {
     const task = StorageService.getDownloadTask(taskId);
-    if (!task || task.status !== DownloadStatus.PENDING || !task.mp4Url) {
+    if (!task || task.status !== DownloadStatus.DOWNLOADING || !task.mp4Url) {
         console.warn(`Task ${taskId} not valid for direct download.`);
         processNextDownload();
         return;
@@ -156,7 +156,7 @@ const startDirectDownload = async (taskId: string) => {
 
 const startFFmpegDownload = async (taskId: string) => {
     const task = StorageService.getDownloadTask(taskId);
-    if (!task || task.status !== DownloadStatus.PENDING || !task.m3u8Url) {
+    if (!task || task.status !== DownloadStatus.DOWNLOADING || !task.m3u8Url) {
         console.warn(`Task ${taskId} not valid for FFmpeg download.`);
         processNextDownload();
         return;
@@ -261,7 +261,7 @@ export const initializeDownloadService = async () => {
 
     // Mark any interrupted downloads as cancelled
     const interruptedTasks = StorageService.getAllDownloadTasks().filter(
-        task => task.status === DownloadStatus.PENDING
+        task => task.status === DownloadStatus.DOWNLOADING
     );
 
     for (const task of interruptedTasks) {
@@ -379,7 +379,7 @@ export const startDownload = async (
         title,
         thumbUrl,
         filePath,
-        status: DownloadStatus.PENDING,
+        status: DownloadStatus.DOWNLOADING,
         createdAt: Date.now(),
         userId,
         movieData,

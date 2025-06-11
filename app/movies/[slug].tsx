@@ -24,7 +24,7 @@ import MovieTrailer from "@/components/movies/movie-trailer";
 import MovieGenres from "@/components/movies/movie-genres";
 import LinearGradient from "expo-linear-gradient";
 import { ScrollView } from "react-native";
-import MovieMetaData from "@/components/movies/movie-metada";
+import MovieMetaData from "@/components/movies/movie-metadata";
 import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
@@ -70,29 +70,7 @@ const Details = () => {
   }, [slug]);
 
   // Handle fullscreen changes
-  const onFullScreenChange = useCallback(
-    (fullscreen: boolean | ((prevState: boolean) => boolean)) => {
-      try {
-        setIsFullScreen(
-          typeof fullscreen === "function"
-            ? fullscreen(isFullScreen)
-            : fullscreen
-        );
-        ScreenOrientation.lockAsync(
-          typeof fullscreen === "function"
-            ? fullscreen(isFullScreen)
-              ? ScreenOrientation.OrientationLock.LANDSCAPE
-              : ScreenOrientation.OrientationLock.PORTRAIT_UP
-            : fullscreen
-            ? ScreenOrientation.OrientationLock.LANDSCAPE
-            : ScreenOrientation.OrientationLock.PORTRAIT_UP
-        ).catch((err) => console.error("Orientation change error:", err));
-      } catch (err) {
-        console.error("Error in fullscreen change:", err);
-      }
-    },
-    [isFullScreen]
-  );
+ 
 
   // Handle back button for fullscreen
   useEffect(() => {
@@ -138,30 +116,22 @@ const Details = () => {
 
   // Handle episode selection
   const handleEpisodeSelect = (item: Episode) => {
-    // Close modal first
-    setIsModalVisible(false);
+  setIsModalVisible(false);
+  setTimeout(() => {
+    if (item?.link_m3u8) {
+      setSelectedEpisode(item); // Step 1: Update episode
 
-    // Wait for modal to fully close before proceeding
-    setTimeout(() => {
-      try {
-        if (item && item.link_m3u8) {
-          setSelectedEpisode(item);
+      // Step 2: Lock orientation THEN show player
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)
+        .then(() => {
           setShowEpisodePlayer(true);
+          setIsFullScreen(true);
+        })
+        .catch(err => console.error("Orientation error:", err));
+    }
+  }, 500);
+};
 
-          // Try to change orientation
-          ScreenOrientation.lockAsync(
-            ScreenOrientation.OrientationLock.LANDSCAPE
-          )
-            .then(() => setIsFullScreen(true))
-            .catch((err) => console.error("Orientation error:", err));
-        } else {
-          console.error("Invalid episode or missing link:", item);
-        }
-      } catch (err) {
-        console.error("Screen orientation error:", err);
-      }
-    }, 500); // Wait 500ms for modal animation to complete
-  };
 
   // Handle closing episode player
   const handleCloseEpisodePlayer = () => {
@@ -200,8 +170,11 @@ const Details = () => {
     );
     return (
       <CustomVideoPlayer
-        source={selectedEpisode.link_m3u8}
-        onBack={handleCloseEpisodePlayer}
+        source={{
+        url: selectedEpisode.link_m3u8,
+        title: selectedEpisode.name
+      }}
+      onBack={handleCloseEpisodePlayer}
       />
     );
   }

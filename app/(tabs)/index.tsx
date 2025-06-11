@@ -110,7 +110,7 @@ const Index = () => {
       >
         <Image source={icons.logo} className="w-12 h-10 mt-20 mb-5 mx-auto" />
         {moviesLoading ? (
-          <ActivityIndicator size="large" color="#fff" className="mt-20" />
+          <ActivityIndicator size="large" color="#EE1520" className="mt-20" />
         ) : moviesError ? (
           <Text className="text-white text-center mt-20">{moviesError}</Text>
         ) : (

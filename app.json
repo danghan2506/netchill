@@ -42,6 +42,11 @@
           "initialOrientation": "PORTRAIT"
         }
       ],
+      "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
+        },
       "expo-router",
       [
         "expo-splash-screen",

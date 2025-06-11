@@ -140,7 +140,7 @@ const Profile = () => {
   if (!userInfo) {
     return (
       <View className="flex-1 justify-center items-center bg-black">
-        <ActivityIndicator size="large" color="#fff" />
+        <ActivityIndicator size="large" color="#EE1520" />
       </View>
     );
   }
@@ -168,7 +168,7 @@ const Profile = () => {
           </View>
         </TouchableOpacity>
         
-        {uploading && <ActivityIndicator color="#fff" className="mt-2" />}
+        {uploading && <ActivityIndicator color="#EE1520" className="mt-2" />}
         <Text className="text-white text-2xl font-bold mt-4">{userInfo.displayName}</Text>
         <Text className="text-white text-sm mt-2">{userInfo.email}</Text>
       </View>

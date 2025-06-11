@@ -69,7 +69,6 @@ interface Created {
 interface Modified {
   time: string
 }
-
 interface Category {
   id: string
   name: string
@@ -84,14 +83,25 @@ interface Country {
 
 interface Episode {
   server_name: string
-  server_data: ServerDaum[]
+  server_data: EpisodeData[]
 }
+interface EpisodeData {
+  name: string;
+  slug: string;
+  filename: string;
+  link_embed: string;
+  link_m3u8: string;
+}
+interface VideoSource {
+  title?: string;
+  url: string;
+  episodes?: {
+    server_data: EpisodeData[];
+  };
+}
+type VideoPlayerProps = {
+  source: VideoSource;
+  onBack?: () => void;
+};
 
-interface ServerDaum {
-  name: string
-  slug: string
-  filename: string
-  link_embed: string
-  link_m3u8: string
-}
 

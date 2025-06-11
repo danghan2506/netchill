@@ -1,12 +1,9 @@
 import { MovieType } from "./movie-type";
 
 export enum DownloadStatus {
-    PENDING = "pending",
-    IN_PROGRESS = "in_progress",
-    COMPLETED = "completed",
-    FAILED = "failed",
-    CANCELLED = "cancelled",
-    PAUSED = "paused"
+  DOWNLOADING = 'downloading',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
 }
 
 export interface DownloadTask {

@@ -123,7 +123,7 @@ export const loadDownloadData = async (): Promise<void> => {
                 if (downloadTask.status === DownloadStatus.COMPLETED) {
                     const fileExists = await checkFileExists(downloadTask.filePath);
                     if (!fileExists) {
-                        downloadTask.status = DownloadStatus.FAILED;
+                        downloadTask.status = DownloadStatus.CANCELLED;
                         downloadTask.error = "File không còn tồn tại";
                     }
                 }
@@ -177,7 +177,7 @@ export const isMovieDownloading = (movieId: string, userId: string): boolean => 
     return Object.values(downloadQueue).some(
         task => task.movieData?.id === movieId && 
                task.userId === userId && 
-               task.status === DownloadStatus.IN_PROGRESS
+               task.status === DownloadStatus.DOWNLOADING
     );
 };
 

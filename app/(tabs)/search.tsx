@@ -36,14 +36,14 @@ return (
       <Image source={images.bg} className='flex-1 absolute w-full z-0' resizeMode='cover'></Image>
       <FlatList data={searchQuery.trim() ? movies : []}
       keyExtractor={(item) => item._id.toString()}
-      renderItem={({item}) => <MoviesCard {...item}/>} numColumns={3} columnWrapperStyle={{
-        justifyContent: "flex-start",
-        gap: 5,
-        paddingRight: 5,
-        marginBottom: 10,
-      }}
-      className='px-5'
-      contentContainerStyle={{ paddingBottom: 10 }}
+      renderItem={({item}) => <MoviesCard {...item}/>} numColumns={2} columnWrapperStyle={{
+                justifyContent: "space-between",
+                paddingHorizontal: 20,
+              }}
+              scrollEnabled={false}
+              contentContainerStyle={{
+                paddingBottom: 20,
+              }}
       ListHeaderComponent={
         <>
           <View className='w-full justify-center flex-row mt-20'>
@@ -53,14 +53,18 @@ return (
               <SearchBar placeholder='Tìm kiếm những bộ phim mà bạn muốn!' value={searchQuery} onChangeText={(text: string) => setSearchQuery(text)} onPress={() => {}}/>
           </View>
           {moviesLoading && (
-           <MaterialIcons name='movie-filter' color="white" size={24} />
+            <ActivityIndicator
+                size="large"
+                color="#FF5F6D"
+                className="my-3"
+              />
           )}
           {moviesError && (
             <Text className='text-red-500 text-center px-5 my-5'>Error: {moviesError}</Text>
           )}
           {!moviesLoading && !moviesError && searchQuery.trim() && movies?.length > 0 && (
-            <Text className='text-xl text-white font-bold'>Search results for {''}
-             <Text className='text-accent'>{searchQuery}</Text>
+            <Text className='text-xl text-white font-bold'>Tìm kiếm cho {''}
+             <Text className='text-[#FF5F6D]'>{searchQuery}</Text>
             </Text>
           )}
         </>
@@ -70,8 +74,8 @@ return (
           <View className="mt-10 px-5">
             <Text className="text-center text-gray-500">
               {searchQuery.trim()
-                ? "No movies found"
-                : "Start typing to search for movies"}
+                ? "Không tìm thấy phim nào với từ khóa này"
+                : "Hãy nhập từ khóa để tìm kiếm phim"}
             </Text>
           </View>
         ) : null

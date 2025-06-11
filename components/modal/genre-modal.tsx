@@ -53,6 +53,7 @@ const GENRE_ICONS: Record<string, string> = {
   'than-thoai': 'auto-awesome',
   'chinh-kich': 'theater-comedy',
   'kinh-dien': 'class',
+  default: 'help-outline', // Add a default icon
 };
 
 export default function DiscoverModal({
@@ -76,7 +77,7 @@ export default function DiscoverModal({
     try {
       const genresData = await fetchGenres();
       const filteredGenres = genresData.filter(
-        (genre) => genre.slug !== 'phim-18'
+        (genre: { slug: string; }) => genre.slug !== 'phim-18'
       );
       setGenres(filteredGenres);
     } catch (error) {
@@ -145,8 +146,7 @@ export default function DiscoverModal({
                     showsVerticalScrollIndicator={false}
                   >
                     {genres.map((item, index) => {
-                      // hiển thị từng thể loại trong danh sách, bạn lấy icon tương ứng như sau:
-                      const iconName = GENRE_ICONS[item.slug] || GENRE_ICONS.default;
+                      const iconName = GENRE_ICONS[item.slug] || GENRE_ICONS.default; // Ensure default icon is used
                       const gradientColors = getGradientColors(index);
                       return (
                         <TouchableOpacity
