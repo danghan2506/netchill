@@ -1,15 +1,13 @@
 import { View, Text, TouchableOpacity, ScrollView, StatusBar, Alert, TextInput, ActivityIndicator, Image } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { auth, db } from '../../FirebaseConfig'
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons'
-import { signOut, updateProfile } from 'firebase/auth'
 import { useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { useAuth } from '@/providers/auth-context'
+import { useUser } from '@clerk/expo'
 type userInfoProps = {
   email: string,
   displayName: string,
-  uid: string,
   profileUrl: string
 }
 const Profile = () => {
@@ -20,25 +18,23 @@ const Profile = () => {
   const [uploading, setUploading] = useState(false)
   const [downloadedVideos, setDownloadedVideos] = useState<any[]>([])
   const router = useRouter()
+  const { logout } = useAuth()
+  const { isLoaded, user } = useUser()
   
 
   const fetchUserInfo = async () => {
-    const user = auth.currentUser
-    if (user) {
-      const userDoc = await getDoc(doc(db, "users", user.uid))
-      if (userDoc.exists()) {
-        const data = userDoc.data()
-        setUserInfo({
-          email: data.email,
-          displayName: data.name || 'Anonymous',
-          uid: data.uid,
-          profileUrl: data.profileUrl || "https://static.thenounproject.com/png/5034901-200.png",
-        }
-      )
-        setNewName(data.name || '')
-      }
-      
-    }
+    if (!isLoaded || !user) return
+
+    const displayName = user.fullName ?? user.firstName ?? 'Anonymous'
+    const email = user.primaryEmailAddress?.emailAddress ?? ''
+    const profileUrl = user.imageUrl ?? "https://static.thenounproject.com/png/5034901-200.png"
+
+    setUserInfo({
+      email,
+      displayName,
+      profileUrl,
+    })
+    setNewName(displayName)
   }
 
   const fetchDownloadedVideos = async () => {
@@ -50,7 +46,7 @@ const Profile = () => {
   useEffect(() => {
     fetchUserInfo()
     fetchDownloadedVideos()
-  }, [])
+  }, [isLoaded, user?.id])
 
   const handleSignOut = async () => {
     Alert.alert('Confirm', 'Do you want to logout?', [
@@ -60,7 +56,7 @@ const Profile = () => {
         style: 'destructive',
         onPress: async () => {
           try {
-            await signOut(auth)
+            await logout()
             router.replace('/(auth)/login')
           } catch (error) {
             console.log('Lỗi đăng xuất:', error)
@@ -78,17 +74,12 @@ const Profile = () => {
     }
 
     try {
-      const user = auth.currentUser
-      if (user) {
-        await updateProfile(user, { displayName: newName })
-        await updateDoc(doc(db, 'users', user.uid), {
-          name: newName,
-          updatedAt: serverTimestamp(),
-        })
-        setEditingName(false)
-        fetchUserInfo()
-        alert('Cập nhật thành công!')
-      }
+      if (!isLoaded || !user) return
+
+      await user.update({ firstName: newName.trim(), lastName: '' })
+      setEditingName(false)
+      fetchUserInfo()
+      alert('Cập nhật thành công!')
     } catch (error) {
       console.log(error)
       alert('Cập nhật thất bại!')
@@ -107,29 +98,23 @@ const Profile = () => {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
-      base64: true, // thêm dòng này để lấy base64
     })
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`
-      await uploadBase64Image(base64Image)
+      const pickedUri = result.assets[0].uri
+      await uploadProfileImage(pickedUri)
     }
   }
 
-  const uploadBase64Image = async (base64Image: string) => {
+  const uploadProfileImage = async (uri: string) => {
     try {
       setUploading(true)
-      const user = auth.currentUser
-  
-      if (user) {
-        await updateDoc(doc(db, 'users', user.uid), {
-          profileUrl: base64Image,
-          updatedAt: serverTimestamp(),
-        })
-  
-        fetchUserInfo()
-        alert('Cập nhật ảnh đại diện thành công!')
-      }
+      if (!isLoaded || !user) return
+
+      await user.setProfileImage({ file: uri })
+      await user.reload()
+      fetchUserInfo()
+      alert('Cập nhật ảnh đại diện thành công!')
     } catch (error) {
       console.log(error)
       alert('Cập nhật ảnh thất bại!')

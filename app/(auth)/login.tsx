@@ -1,14 +1,15 @@
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar, Image } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, ImageBackground, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router';
 import { images } from '@/constants/images'
 import { Icon } from '@/components/ui/icon';
 import { Eye, EyeOff } from 'lucide-react-native';
-import { signInUsingEmailAndPassword } from '@/lib/firebase-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/providers/auth-context';
+import { useSignIn } from '@clerk/expo';
+import { handleAuthError } from '@/lib/error-handling';
 const loginSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email!').email('Email không hợp lệ!'),
   password: z.string().min(1, 'Vui lòng nhập mật khẩu!'),
@@ -21,6 +22,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { refreshUserData } = useAuth();
+  const { signIn: clerkSignIn } = useSignIn();
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
@@ -29,15 +31,34 @@ const Login = () => {
   const signIn = async (data: LoginForm) => {
     setLoading(true);
     try {
-      const result = await signInUsingEmailAndPassword(data.email, data.password);
-      if (result?.success) {
-        await refreshUserData();
-        router.replace('/(tabs)');
-      } else {
-        alert(result?.error?.message || 'Đăng nhập thất bại');
+      const { error } = await clerkSignIn.password({
+        emailAddress: data.email,
+        password: data.password,
+      });
+
+      if (error) {
+        const authError = handleAuthError(error);
+        alert(authError.message);
+        return;
       }
+
+      if (clerkSignIn.status !== 'complete') {
+        alert('Đăng nhập chưa hoàn tất. Vui lòng thử lại.');
+        return;
+      }
+
+      const { error: finalizeError } = await clerkSignIn.finalize();
+      if (finalizeError) {
+        const authError = handleAuthError(finalizeError);
+        alert(authError.message);
+        return;
+      }
+
+      await refreshUserData();
+      router.replace('/(tabs)');
     } catch (error: any) {
-      alert('Đăng nhập thất bại: ' + error.message);
+      const authError = handleAuthError(error);
+      alert(authError.message);
     } finally {
       setLoading(false);
     }

@@ -5,7 +5,6 @@ import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { DownloadTask } from '@/types/download';
 import { useAuth } from './auth-context';
-import { User } from '@/interfaces/user';
 type DownloadContextType = {
     userId: string
     isDownloading: boolean;
@@ -26,7 +25,7 @@ type DownloadProviderProps = {
 }
 export const DownloadProvider: React.FC<DownloadProviderProps> = ({children}) => {
     const { user } = useAuth();
-    const userId = user?.uid || '';
+    const userId = user?.id || '';
     const [isDownloading, setIsDownloading] = useState(false);
     const [downloads, setDownloads] = useState<DownloadTask[]>([]);
     const [userDownloads, setUserDownloads] = useState<DownloadTask[]>([]);

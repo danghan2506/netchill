@@ -1,34 +1,24 @@
-import { Stack, Tabs, useRouter } from "expo-router";
-import React, { useEffect } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Stack } from "expo-router";
+import React from "react";
 import "./global.css";
-import { getAuth } from "@firebase/auth";
 import { AuthProvider } from "@/providers/auth-context";
+import { ClerkProvider } from "@clerk/expo";
+import { tokenCache } from "@clerk/expo/token-cache";
 export default function RootLayout() {
-  const router = useRouter();
-  getAuth().onAuthStateChanged((user) => {
-    if (!user) {
-      router.replace("/(auth)/login");
-    } else {
-      router.replace("/(tabs)");
-    }
-  });
+  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  if (!publishableKey) {
+    throw new Error("Add EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY to your .env");
+  }
+
   return (
-    <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen
-        name="(tabs)"
-        options={{
-          headerShown: false,}}
-      />
-      <Stack.Screen
-        name="(auth)"
-        options={{
-          headerShown: false,
-        }}
-      />
-    </Stack>
-    </AuthProvider>
-   
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      <AuthProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        </Stack>
+      </AuthProvider>
+    </ClerkProvider>
   );
 }

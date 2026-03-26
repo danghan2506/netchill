@@ -4,11 +4,11 @@ import { useRouter } from 'expo-router'
 import { images } from '@/constants/images'
 import { Icon } from '@/components/ui/icon'
 import { Eye, EyeOff, Trophy } from 'lucide-react-native'
-import { signUpUsingEmailAndPassword } from '@/lib/firebase-auth'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod'
 import { handleAuthError } from '@/lib/error-handling'
+import { useSignUp } from '@clerk/expo'
 const signupSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email!').email('Email không hợp lệ!'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
@@ -24,6 +24,10 @@ const SignUp = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+
+  const { signUp: clerkSignUp } = useSignUp();
 
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
@@ -33,15 +37,64 @@ const SignUp = () => {
   const signUp = async (data: SignupForm) => {
     setLoading(true);
     try {
-      const result = await signUpUsingEmailAndPassword(data.email, data.password, data.confirmPassword);
-      if (result?.success) {
-        router.replace('/(tabs)');
-      } else {
-        alert(result?.error?.message || 'Đăng ký thất bại');
+      const { error } = await clerkSignUp.password({
+        emailAddress: data.email,
+        password: data.password,
+      });
+
+      if (error) {
+        const authError = handleAuthError(error);
+        alert(authError.message);
+        return;
       }
+
+      const { error: sendCodeError } = await clerkSignUp.verifications.sendEmailCode();
+      if (sendCodeError) {
+        const authError = handleAuthError(sendCodeError);
+        alert(authError.message);
+        return;
+      }
+
+      setPendingVerification(true);
     } catch (error: any) {
         const authError = handleAuthError(error);
         alert(authError.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyEmailCode = async () => {
+    if (!verificationCode.trim()) {
+      alert('Vui lòng nhập mã xác thực');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await clerkSignUp.verifications.verifyEmailCode({ code: verificationCode.trim() });
+      if (error) {
+        const authError = handleAuthError(error);
+        alert(authError.message);
+        return;
+      }
+
+      if (clerkSignUp.status !== 'complete') {
+        alert('Xác thực email chưa hoàn tất');
+        return;
+      }
+
+      const { error: finalizeError } = await clerkSignUp.finalize();
+      if (finalizeError) {
+        const authError = handleAuthError(finalizeError);
+        alert(authError.message);
+        return;
+      }
+
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      const authError = handleAuthError(error);
+      alert(authError.message);
     } finally {
       setLoading(false);
     }
@@ -56,63 +109,103 @@ const SignUp = () => {
             <Text className="text-white opacity-40 text-2xl mt-1 font-[BebasNeue] font-regular font-[400]">WATCH TV SHOW AND MOVIES.</Text>
           </View>
           <View className="p-5 w-full">
-            <View className="flex-row items-center bg-white/10 rounded-lg mb-4 px-3 h-12">
-              <TextInput
-                placeholder="abc@gmail.com"
-                placeholderTextColor="#999"
-                onChangeText={text => form.setValue('email', text, { shouldValidate: true })}
-                value={form.watch('email')}
-                className="flex-1 text-white h-full ml-2"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-            {form.formState.errors.email && (
-              <Text className="text-red-500 mb-2 ml-2 text-xs">{form.formState.errors.email.message}</Text>
+            {!pendingVerification ? (
+              <>
+                <View className="flex-row items-center bg-white/10 rounded-lg mb-4 px-3 h-12">
+                  <TextInput
+                    placeholder="abc@gmail.com"
+                    placeholderTextColor="#999"
+                    onChangeText={text => form.setValue('email', text, { shouldValidate: true })}
+                    value={form.watch('email')}
+                    className="flex-1 text-white h-full ml-2"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+                {form.formState.errors.email && (
+                  <Text className="text-red-500 mb-2 ml-2 text-xs">{form.formState.errors.email.message}</Text>
+                )}
+                <View className="flex-row items-center bg-white/10 rounded-lg mb-4 px-3 h-12">
+                  <TextInput
+                    placeholder="Enter password"
+                    placeholderTextColor="#999"
+                    onChangeText={text => form.setValue('password', text, { shouldValidate: true })}
+                    value={form.watch('password')}
+                    secureTextEntry={!showPassword}
+                    className="flex-1 text-white h-full ml-2"
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="p-1">
+                    {showPassword ? <Icon as={Eye} color='white'/> : <Icon as={EyeOff} color='white'/>}
+                  </TouchableOpacity>
+                </View>
+                {form.formState.errors.password && (
+                  <Text className="text-red-500 mb-2 ml-2 text-xs">{form.formState.errors.password.message}</Text>
+                )}
+                <View className="flex-row items-center bg-white/10 rounded-lg mb-5 px-3 h-12">
+                  <TextInput
+                    placeholder="Confirm password"
+                    placeholderTextColor="#999"
+                    onChangeText={text => form.setValue('confirmPassword', text, { shouldValidate: true })}
+                    value={form.watch('confirmPassword')}
+                    secureTextEntry={!showPassword}
+                    className="flex-1 text-white h-full ml-2"
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="p-1">
+                    {showPassword ? <Icon as={Eye} color='white'/> : <Icon as={EyeOff} color='white'/>}
+                  </TouchableOpacity>
+                </View>
+                {form.formState.errors.confirmPassword && (
+                  <Text className="text-red-500 mb-2 ml-2 text-xs">{form.formState.errors.confirmPassword.message}</Text>
+                )}
+                <TouchableOpacity
+                  className={`bg-red-600 rounded-lg h-12 justify-center items-center mb-5 ${loading ? 'opacity-70' : ''}`}
+                  onPress={form.handleSubmit(signUp)}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text className="text-white text-base font-bold">Register</Text>
+                  )}
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text className="text-white/70 text-sm mb-3">Nhập mã xác thực đã gửi tới email của bạn</Text>
+                <View className="flex-row items-center bg-white/10 rounded-lg mb-4 px-3 h-12">
+                  <TextInput
+                    placeholder="Verification code"
+                    placeholderTextColor="#999"
+                    value={verificationCode}
+                    onChangeText={setVerificationCode}
+                    className="flex-1 text-white h-full ml-2"
+                    keyboardType="number-pad"
+                    autoCapitalize="none"
+                  />
+                </View>
+                <TouchableOpacity
+                  className={`bg-red-600 rounded-lg h-12 justify-center items-center mb-5 ${loading ? 'opacity-70' : ''}`}
+                  onPress={verifyEmailCode}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text className="text-white text-base font-bold">Verify</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="rounded-lg h-12 justify-center items-center mb-5"
+                  onPress={() => {
+                    setPendingVerification(false);
+                    setVerificationCode('');
+                  }}
+                  disabled={loading}
+                >
+                  <Text className="text-white/60 text-sm font-bold">Back</Text>
+                </TouchableOpacity>
+              </>
             )}
-            <View className="flex-row items-center bg-white/10 rounded-lg mb-4 px-3 h-12">
-              <TextInput
-                placeholder="Enter password"
-                placeholderTextColor="#999"
-                onChangeText={text => form.setValue('password', text, { shouldValidate: true })}
-                value={form.watch('password')}
-                secureTextEntry={!showPassword}
-                className="flex-1 text-white h-full ml-2"
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="p-1">
-                {showPassword ? <Icon as={Eye} color='white'/> : <Icon as={EyeOff} color='white'/>}
-              </TouchableOpacity>
-            </View>
-            {form.formState.errors.password && (
-              <Text className="text-red-500 mb-2 ml-2 text-xs">{form.formState.errors.password.message}</Text>
-            )}
-            <View className="flex-row items-center bg-white/10 rounded-lg mb-5 px-3 h-12">
-              <TextInput
-                placeholder="Confirm password"
-                placeholderTextColor="#999"
-                onChangeText={text => form.setValue('confirmPassword', text, { shouldValidate: true })}
-                value={form.watch('confirmPassword')}
-                secureTextEntry={!showPassword}
-                className="flex-1 text-white h-full ml-2"
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="p-1">
-                {showPassword ? <Icon as={Eye} color='white'/> : <Icon as={EyeOff} color='white'/>}
-              </TouchableOpacity>
-            </View>
-            {form.formState.errors.confirmPassword && (
-              <Text className="text-red-500 mb-2 ml-2 text-xs">{form.formState.errors.confirmPassword.message}</Text>
-            )}
-            <TouchableOpacity
-              className={`bg-red-600 rounded-lg h-12 justify-center items-center mb-5 ${loading ? 'opacity-70' : ''}`}
-              onPress={form.handleSubmit(signUp)}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text className="text-white text-base font-bold">Register</Text>
-              )}
-            </TouchableOpacity>
             <View className="flex-row items-center my-5">
               <View className="flex-1 h-px bg-white/30" />
               <Text className="text-white/60 px-3 text-xs">OR</Text>

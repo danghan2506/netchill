@@ -34,5 +34,5 @@ export default function Index() {
     );
   }
 
-  return user ? <Redirect href="/(main)/(tabs)/home" /> : <Redirect href="/(auth)" />;
+  return user ? <Redirect href="/(tabs)" /> : <Redirect href="/(auth)/login" />;
 }

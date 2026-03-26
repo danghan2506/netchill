@@ -1,11 +1,9 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { User as FirebaseUser, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/FirebaseConfig';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { User } from '@/interfaces/user';
+import React, { createContext, useContext, useMemo } from "react";
+import { useAuth as useClerkAuth, useUser as useClerkUser } from "@clerk/expo";
+import type { AppUser } from "@/interfaces/user";
 
 type AuthContextType = {
-  user: User | null;
+  user: AppUser | null;
   isLoading: boolean;
   refreshUserData: () => Promise<void>;
   logout: () => Promise<void>;
@@ -14,48 +12,29 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const fetchUser = async (firebaseUser: FirebaseUser) => {
-    try {
-      const db = getFirestore();
-      const userDocRef = doc(db, 'users', firebaseUser.uid);
-      const userDocSnap = await getDoc(userDocRef);
-  
-      if (userDocSnap.exists()) {
-        const data = userDocSnap.data() as User;
-        setUser(data);
-      }
-    } catch (err) {
-      console.error('Error fetching user:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
+  const { isLoaded: authLoaded, signOut, userId } = useClerkAuth();
+  const { isLoaded: userLoaded, user: clerkUser } = useClerkUser();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        fetchUser(firebaseUser);
-      } else {
-        setUser(null);
-        setIsLoading(false);
-      }
-    });
-    return unsubscribe;
-  }, []);
+  const user: AppUser | null = useMemo(() => {
+    if (!clerkUser || !userId) return null;
+    return {
+      id: userId,
+      email: clerkUser.primaryEmailAddress?.emailAddress ?? "",
+      name: clerkUser.fullName ?? clerkUser.firstName ?? "",
+      imageUrl: clerkUser.imageUrl ?? "",
+    };
+  }, [clerkUser, userId]);
+
+  const isLoading = !(authLoaded && userLoaded);
 
   const refreshUserData = async () => {
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-      await fetchUser(currentUser);
+    if (clerkUser) {
+      await clerkUser.reload();
     }
   };
 
   const logout = async () => {
-    await auth.signOut();
-    setUser(null);
+    await signOut();
   };
 
   return (
