@@ -20,6 +20,7 @@ const Layout = () => {
           height: "100%",
           justifyContent: "center",
           alignItems: "center",
+          marginBottom: 20,
         },
         tabBarStyle: {
           backgroundColor: "#171717",

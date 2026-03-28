@@ -7,42 +7,72 @@ import {
   FlatList,
   Dimensions,
   StyleSheet,
+  TouchableOpacity,
 } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
-import { Tabs, useRouter } from "expo-router";
-import { images } from "@/constants/images";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "expo-router";
 import { icons } from "@/constants/icons";
 import SearchBar from "@/components/movies/SearchBar";
 import useFetch from "@/services/useFetch";
 import { fetchMovies, fetchTrendingMovies } from "@/services/api";
 import MoviesCard from "@/components/movies/movie-card";
-import TrendingCard from "@/components/movies/trending-card";
-import Animated, {
-  scrollTo,
-  useAnimatedRef,
-  useAnimatedScrollHandler,
-  useDerivedValue,
-  useSharedValue,
-} from "react-native-reanimated";
+import UpdatedCard from "@/components/movies/new-updated-card";
 import * as ScreenOrientation from "expo-screen-orientation";
-import Genrebox from "@/components/Genrebox";
+// ── Pagination Dots ──────────────────────────────────────────────────────────
+const PaginationDots = ({
+  total,
+  activeIndex,
+}: {
+  total: number;
+  activeIndex: number;
+}) => (
+  <View style={styles.dotsRow}>
+    {Array.from({ length: total }).map((_, i) => (
+      <View
+        key={i}
+        style={[
+          styles.dot,
+          i === activeIndex ? styles.dotActive : styles.dotInactive,
+        ]}
+      />
+    ))}
+  </View>
+);
+// ─────────────────────────────────────────────────────────────────────────────
+
 const Index = () => {
   const router = useRouter();
   const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList<any>>(null);
+  const currentIndexRef = useRef(0);
+  const { width } = Dimensions.get("window");
+
+  // Fires as soon as 50% of a card is visible — works for fast swipes too
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 });
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: any) => {
+      if (viewableItems.length > 0) {
+        const idx = viewableItems[0].index ?? 0;
+        currentIndexRef.current = idx;
+        setActiveIndex(idx);
+      }
+    },
+    []
+  );
+
   useEffect(() => {
-    // Khóa màn hình ở chế độ dọc khi component được mount
     const lockPortrait = async () => {
-      await ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.PORTRAIT
-      );
+      try {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT
+        );
+      } catch (_) {
+        // Device does not support orientation locking — ignore
+      }
     };
-
     lockPortrait();
-
-    // Clean up khi component unmount
     return () => {
-      // Bỏ khóa nếu cần
       const unlockAll = async () => {
         await ScreenOrientation.unlockAsync();
       };
@@ -55,69 +85,63 @@ const Index = () => {
     loading: trendingMoviesLoading,
     error: trendingMoviesError,
   } = useFetch(() => fetchTrendingMovies("tinh-cam", 1, "modified.time"));
-  const scrollX = useSharedValue(0);
-  const { width } = Dimensions.get("window");
+
   const {
     data: movies,
     loading: moviesLoading,
     error: moviesError,
   } = useFetch(() => fetchMovies(4));
-  const onScrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
-    },
-  });
+
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isAutoPlay && trendingMovies?.length > 0) {
       interval = setInterval(() => {
-        const nextIndex = Math.floor(scrollX.value / width) + 1;
-        const offsetX = nextIndex * width;
-
-        if (offsetX >= width * trendingMovies.length) {
-          // Reset về đầu nếu đã đến cuối
-          flatListRef.current?.scrollToOffset({
-            offset: 0,
-            animated: true,
-          });
-        } else {
-          flatListRef.current?.scrollToOffset({
-            offset: offsetX,
-            animated: true,
-          });
-        }
+        const nextIndex = currentIndexRef.current + 1;
+        const resolvedIndex =
+          nextIndex >= trendingMovies.length ? 0 : nextIndex;
+        flatListRef.current?.scrollToIndex({
+          index: resolvedIndex,
+          animated: true,
+        });
+        currentIndexRef.current = resolvedIndex;
+        setActiveIndex(resolvedIndex);
       }, 3000);
     }
-
     return () => {
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
     };
-  }, [isAutoPlay, scrollX, trendingMovies]);
+  }, [isAutoPlay, trendingMovies]);
 
-  const getItemLayout = (data: any, index: number) => ({
+  const getItemLayout = (_data: any, index: number) => ({
     length: width,
     offset: width * index,
     index,
   });
 
   return (
-    <View className="flex-1 bg-primary">
-      <Image source={images.bg} className="absolute w-full z-0" />
+    <View className="flex-1 bg-black">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ minHeight: "100%", paddingBottom: 10 }}
       >
-        <Image source={icons.logo} className="w-12 h-10 mt-20 mb-5 mx-auto" />
+        <Image
+          source={icons.logo}
+          className="w-12 h-10 mt-20 mb-5 mx-auto"
+        />
         {moviesLoading ? (
-          <ActivityIndicator size="large" color="#EE1520" className="mt-20" />
+          <ActivityIndicator
+            size="large"
+            color="#EE1520"
+            className="mt-20"
+          />
         ) : moviesError ? (
-          <Text className="text-white text-center mt-20">{moviesError}</Text>
+          <Text className="text-white text-center mt-20">
+            {moviesError}
+          </Text>
         ) : (
           <>
             <View className="flex-1 mt-5">
-              {/* push to different URL */}
-              
               <SearchBar
                 onPress={() => router.push("/search")}
                 placeholder="Tìm kiếm những bộ phim mà bạn muốn!"
@@ -125,47 +149,41 @@ const Index = () => {
                 onChangeText={() => {}}
               />
             </View>
-            <Text className="text-white text-2xl font-bold mb-5 mt-5 mx-5">
-              Đề xuất cho bạn
+            <Text className="text-white text-xl font-bold mb-5 mt-5 mx-5">
+              Phim mới cập nhật
             </Text>
             <View style={styles.carouselContainer}>
-              <Animated.FlatList
+              <FlatList
                 data={trendingMovies}
                 ref={flatListRef}
                 renderItem={({ item, index }) => (
-                  <TrendingCard {...item} scrollX={scrollX} index={index} />
+                  <UpdatedCard
+                    {...item}
+                    scrollX={null}
+                    index={index}
+                  />
                 )}
                 keyExtractor={(item) => item._id.toString()}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 pagingEnabled
                 getItemLayout={getItemLayout}
-                contentContainerStyle={{
-                  alignItems: "center",
-                }}
                 removeClippedSubviews={false}
-                onScroll={onScrollHandler}
-                scrollEventThrottle={16}
-                onMomentumScrollEnd={(event) => {
-                  const offsetX = event.nativeEvent.contentOffset.x;
-                  const lastIndex = trendingMovies.length - 1;
-
-                  if (offsetX >= width * lastIndex) {
-                    // Nếu scroll tới phần tử cuối, reset về đầu
-                    flatListRef.current?.scrollToOffset({
-                      offset: 0,
-                      animated: false,
-                    });
-                  }
-                }}
-                onScrollBeginDrag={() => {
-                  setIsAutoPlay(false);
-                }}
-                onScrollEndDrag={() => {
-                  setIsAutoPlay(true);
-                }}
+                onViewableItemsChanged={onViewableItemsChanged}
+                viewabilityConfig={viewabilityConfig.current}
+                onScrollBeginDrag={() => setIsAutoPlay(false)}
+                onScrollEndDrag={() => setIsAutoPlay(true)}
               />
             </View>
+
+            {/* Dot pagination */}
+            {trendingMovies?.length > 0 && (
+              <PaginationDots
+                total={trendingMovies.length}
+                activeIndex={activeIndex}
+              />
+            )}
+
             <Text className="text-white text-2xl font-bold mb-5 mt-5 mx-5">
               Thịnh hành
             </Text>
@@ -179,9 +197,7 @@ const Index = () => {
                 paddingHorizontal: 20,
               }}
               scrollEnabled={false}
-              contentContainerStyle={{
-                paddingBottom: 20,
-              }}
+              contentContainerStyle={{ paddingBottom: 20 }}
             />
           </>
         )}
@@ -189,17 +205,32 @@ const Index = () => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   carouselContainer: {
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
   },
-  genreBoxContainer: {
-    flex: 1,
+  dotsRow: {
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    gap: 6,
+    marginTop: 14,
+    marginBottom: 4,
+  },
+  dot: {
+    height: 6,
+    borderRadius: 3,
+  },
+  dotActive: {
+    width: 22,
+    backgroundColor: "#EE1520",
+  },
+  dotInactive: {
+    width: 6,
+    backgroundColor: "rgba(255,255,255,0.3)",
   },
 });
 

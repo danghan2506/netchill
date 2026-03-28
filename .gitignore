@@ -32,8 +32,9 @@ yarn-error.*
 # local env files
 *.env
 # ignore firebaseConfig
-*.FirebaseConfig.ts
 # typescript
 *.tsbuildinfo
-
+.github
+.agent
+.shared
 app-example
