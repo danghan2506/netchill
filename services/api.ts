@@ -35,14 +35,31 @@ export const fetchTopRatedMovies = async (page: number) => {
   }
   const data = await response.json();
   const items: Movie[] = data?.items || [];
-  
   // Sort by TMDB vote average in descending order (highest first)
   const sortedItems = items.sort((a, b) => {
     const voteA = a.tmdb?.vote_average || 0;
     const voteB = b.tmdb?.vote_average || 0;
     return voteB - voteA;
   });
-
+  return sortedItems;
+}
+export const fetchMostSearchedMovies = async(page: number) => {
+  const endpoint = `${KKPHIM_CONFIG.baseURL}danh-sach/phim-moi-cap-nhat?page=${page}`;
+  const response = await fetch(endpoint, {
+    method: "GET",
+  });
+  if (!response.ok) {
+    throw new Error(`Error fetching most searched movies: ${response.statusText}`);
+  }
+  const data = await response.json();
+  const items: Movie[] = data?.items || [];
+  // Sort by weighted TMDB score (vote_count * vote_average)
+  // This prioritizes movies that are both popular (highly searched) and well-rated
+  const sortedItems = items.sort((a, b) => {
+    const weightA = (a.tmdb?.vote_count || 0) * (a.tmdb?.vote_average || 0);
+    const weightB = (b.tmdb?.vote_count || 0) * (b.tmdb?.vote_average || 0);
+    return weightB - weightA;
+  });
   return sortedItems;
 }
 export const searchMovies = async (keyword: string) :Promise<Movie[]> => {
