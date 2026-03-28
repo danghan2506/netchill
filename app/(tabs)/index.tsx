@@ -84,7 +84,7 @@ const Index = () => {
     data: trendingMovies,
     loading: trendingMoviesLoading,
     error: trendingMoviesError,
-  } = useFetch(() => fetchTrendingMovies("tinh-cam", 1, "modified.time"));
+  } = useFetch(() => fetchTrendingMovies(1));
 
   const {
     data: movies,

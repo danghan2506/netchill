@@ -14,16 +14,36 @@ export const fetchMovies = async (page: number) => {
   const data = await response.json();
   return data?.items || [];
 };
-export const fetchTrendingMovies = async (type_list: string,page: number, sort_field: string) => {
-  const endpoint = `${KKPHIM_CONFIG.baseURL}/v1/api/the-loai/${type_list}?page=${page}&sort_field=${sort_field}`;
+export const fetchTrendingMovies = async (page: number) => {
+  const endpoint = `${KKPHIM_CONFIG.baseURL}danh-sach/phim-moi-cap-nhat?page=${page}`;
   const response = await fetch(endpoint, {
     method: "GET",
-  })
+  });
   if (!response.ok) {
     throw new Error(`Error fetching trending movies: ${response.statusText}`);
   }
   const data = await response.json();
-  return data.data.items || [];
+  return data?.items || [];
+}
+export const fetchTopRatedMovies = async (page: number) => {
+  const endpoint = `${KKPHIM_CONFIG.baseURL}danh-sach/phim-moi-cap-nhat-v3?page=${page}`;
+  const response = await fetch(endpoint, {
+    method: "GET",
+  });
+  if (!response.ok) {
+    throw new Error(`Error fetching top rated movies: ${response.statusText}`);
+  }
+  const data = await response.json();
+  const items: Movie[] = data?.items || [];
+  
+  // Sort by TMDB vote average in descending order (highest first)
+  const sortedItems = items.sort((a, b) => {
+    const voteA = a.tmdb?.vote_average || 0;
+    const voteB = b.tmdb?.vote_average || 0;
+    return voteB - voteA;
+  });
+
+  return sortedItems;
 }
 export const searchMovies = async (keyword: string) :Promise<Movie[]> => {
   const endpoint = `${KKPHIM_CONFIG.baseURL}/v1/api/tim-kiem?keyword=${keyword}`;

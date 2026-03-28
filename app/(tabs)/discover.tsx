@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { fetchLatestMovies, fetchMoviesByGenre, fetchPopularMovies, fetchTrendingMovies } from "@/services/api";
+import { fetchLatestMovies, fetchMoviesByGenre, fetchPopularMovies, fetchTopRatedMovies } from "@/services/api";
 import MoviesCard from "@/components/movies/movie-card";
 import DiscoverModal from "@/components/modal/genre-modal";
 
@@ -20,7 +20,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const TRENDING_CATEGORIES = [
   { id: "new", name: "Mới cập nhật", icon: "film-outline" as const, fetchFunction:() =>  fetchLatestMovies() },
   { id: "popular", name: "Phổ biến", icon: "trending-up" as const, fetchFunction: () => fetchPopularMovies(1, "year", "desc") },
-  { id: "top_rated", name: "Đánh giá cao", icon: "star" as const, fetchFunction: () => fetchTrendingMovies("gia-dinh", 1, "_id") },
+  { id: "top_rated", name: "Đánh giá cao", icon: "star" as const, fetchFunction: () => fetchTopRatedMovies(1) },
 ];
 type genreModalProps = {
   id: string,
