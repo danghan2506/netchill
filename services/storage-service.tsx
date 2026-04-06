@@ -2,7 +2,7 @@
 // theo doi trang thai tai xuong (hoan thanh, dang tai, loi)
 // luu tru thong tin cac tac vu tai xuong
 import { DownloadStatus, DownloadTask } from "@/types/download";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { MovieType } from "@/types/movie-type";
 
 // Define constants for file paths

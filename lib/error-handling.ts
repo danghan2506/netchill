@@ -1,54 +1,65 @@
-import { isClerkAPIResponseError } from '@clerk/expo';
+import { AuthError } from '@supabase/supabase-js';
 
 type AuthErrorMapping = {
   [key: string]: string;
 };
 
-// Map common Clerk error codes to user-friendly Vietnamese messages.
-// Note: Clerk error codes can vary by configuration; this covers typical cases.
-const clerkErrorMessages: AuthErrorMapping = {
+// Map Supabase AuthError codes/messages → Vietnamese user-friendly messages
+const supabaseErrorMessages: AuthErrorMapping = {
   // Sign in
-  form_password_incorrect: 'Mật khẩu không chính xác.',
-  form_identifier_not_found: 'Không tìm thấy tài khoản với email này.',
-  form_identifier_invalid: 'Địa chỉ email không hợp lệ.',
-
-  // Sign up
-  form_identifier_exists: 'Email này đã được sử dụng bởi một tài khoản khác.',
-  form_password_pwned: 'Mật khẩu quá yếu. Vui lòng chọn mật khẩu mạnh hơn.',
-  form_password_length_too_short: 'Mật khẩu phải có ít nhất 6 ký tự.',
-  form_password_not_strong_enough: 'Mật khẩu quá yếu. Vui lòng chọn mật khẩu mạnh hơn.',
+  invalid_credentials: 'Email hoặc mật khẩu không đúng.',
+  user_not_found: 'Không tìm thấy tài khoản với email này.',
 
   // Email verification
-  form_code_incorrect: 'Mã xác thực không hợp lệ.',
-  form_code_expired: 'Mã xác thực đã hết hạn. Vui lòng yêu cầu mã mới.',
+  email_not_confirmed: 'Email chưa được xác thực. Vui lòng kiểm tra hộp thư.',
+  otp_expired: 'Mã OTP đã hết hạn. Vui lòng đăng ký lại.',
+  token_expired: 'Mã OTP đã hết hạn. Vui lòng thử lại.',
+  otp_disabled: 'Xác thực OTP không được bật.',
+
+  // Sign up
+  user_already_exists: 'Email này đã được đăng ký.',
+  email_exists: 'Email này đã được sử dụng bởi một tài khoản khác.',
+  weak_password: 'Mật khẩu quá yếu. Vui lòng chọn mật khẩu mạnh hơn.',
+
+  // Rate limiting
+  over_request_rate_limit: 'Quá nhiều yêu cầu. Vui lòng thử lại sau vài phút.',
+  over_email_send_rate_limit: 'Đã gửi quá nhiều email. Vui lòng chờ trước khi thử lại.',
+
+  // Network / general
+  network_failure: 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.',
 };
 
-export const getFirebaseErrorMessage = (error: any): string => {
+export const getSupabaseErrorMessage = (error: any): string => {
   if (typeof error === 'string') return error;
 
-  if (isClerkAPIResponseError(error)) {
-    const first = error.errors?.[0];
-    const code = first?.code;
-    if (code && clerkErrorMessages[code]) return clerkErrorMessages[code];
-    return first?.longMessage || first?.message || 'Đã xảy ra lỗi. Vui lòng thử lại.';
+  if (error instanceof AuthError) {
+    const code = error.code;
+    if (code && supabaseErrorMessages[code]) return supabaseErrorMessages[code];
+
+    // Fallback: match on message content
+    const msg = error.message?.toLowerCase() ?? '';
+    if (msg.includes('invalid login credentials')) return supabaseErrorMessages['invalid_credentials'];
+    if (msg.includes('email not confirmed')) return supabaseErrorMessages['email_not_confirmed'];
+    if (msg.includes('user already registered')) return supabaseErrorMessages['user_already_exists'];
+    if (msg.includes('weak password')) return supabaseErrorMessages['weak_password'];
+
+    return error.message || 'Đã xảy ra lỗi. Vui lòng thử lại.';
   }
 
-  const errorCode = error?.code;
-  if (errorCode && clerkErrorMessages[errorCode]) return clerkErrorMessages[errorCode];
+  const code = error?.code;
+  if (code && supabaseErrorMessages[code]) return supabaseErrorMessages[code];
 
   return error?.message || 'Đã xảy ra lỗi. Vui lòng thử lại.';
 };
-  
-  // Create a formatted error object
-  export const createAuthError = (error: any): { code: string; message: string } => {
-    return {
-      code: error?.code || 'auth/unknown-error',
-      message: getFirebaseErrorMessage(error)
-    };
+
+export const createAuthError = (error: any): { code: string; message: string } => {
+  return {
+    code: error?.code || 'auth/unknown-error',
+    message: getSupabaseErrorMessage(error),
   };
-  
-  // Helper function to handle auth errors in one line
-  export const handleAuthError = (error: any): { code: string; message: string } => {
-    console.error('Auth error:', error);
-    return createAuthError(error);
-  };
+};
+
+export const handleAuthError = (error: any): { code: string; message: string } => {
+  console.error('Auth error:', error);
+  return createAuthError(error);
+};

@@ -1,40 +1,60 @@
-import React, { createContext, useContext, useMemo } from "react";
-import { useAuth as useClerkAuth, useUser as useClerkUser } from "@clerk/expo";
-import type { AppUser } from "@/interfaces/user";
-
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { UserInfo } from "@/types/user-type";
+import { supabase } from "@/utils/supabase";
+import { userService } from "@/services/user-service";
+import { Session } from "@supabase/supabase-js";
 type AuthContextType = {
-  user: AppUser | null;
+  user: UserInfo | null;
   isLoading: boolean;
   refreshUserData: () => Promise<void>;
   logout: () => Promise<void>;
 };
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { isLoaded: authLoaded, signOut, userId } = useClerkAuth();
-  const { isLoaded: userLoaded, user: clerkUser } = useClerkUser();
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const fetchUserProfile = async (user: any) => {
+    try {
+      let profile = await userService.getUserProfile(user.id);
+      if (!profile) {
+        profile = await userService.upsertUserProfile(user);
+      }
+      setUser(profile);
+    } catch (error) {
+      console.error("Error fetching user profile in context:", error);
+    }
+  };
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session);
+      if (session?.user) {
+        await fetchUserProfile(session.user);
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
 
-  const user: AppUser | null = useMemo(() => {
-    if (!clerkUser || !userId) return null;
-    return {
-      id: userId,
-      email: clerkUser.primaryEmailAddress?.emailAddress ?? "",
-      name: clerkUser.fullName ?? clerkUser.firstName ?? "",
-      imageUrl: clerkUser.imageUrl ?? "",
+    return () => {
+      subscription.unsubscribe();
     };
-  }, [clerkUser, userId]);
-
-  const isLoading = !(authLoaded && userLoaded);
+  }, []);
 
   const refreshUserData = async () => {
-    if (clerkUser) {
-      await clerkUser.reload();
+    if (session?.user) {
+      await fetchUserProfile(session.user);
     }
   };
 
   const logout = async () => {
-    await signOut();
+    setIsLoading(true);
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setIsLoading(false);
   };
 
   return (
@@ -43,11 +63,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     </AuthContext.Provider>
   );
 };
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

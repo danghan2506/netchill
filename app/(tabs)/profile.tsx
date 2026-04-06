@@ -3,39 +3,23 @@ import React, { useEffect, useState } from 'react'
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
+import * as FileSystem from 'expo-file-system/legacy'
 import { useAuth } from '@/providers/auth-context'
-import { useUser } from '@clerk/expo'
-type userInfoProps = {
-  email: string,
-  displayName: string,
-  profileUrl: string
-}
+import { userService } from '@/services/user-service'
+
 const Profile = () => {
-  
-  const [userInfo, setUserInfo] = useState<userInfoProps | null>(null)
+  const { user: userInfo, logout, refreshUserData } = useAuth()
   const [editingName, setEditingName] = useState(false)
   const [newName, setNewName] = useState('')
   const [uploading, setUploading] = useState(false)
   const [downloadedVideos, setDownloadedVideos] = useState<any[]>([])
   const router = useRouter()
-  const { logout } = useAuth()
-  const { isLoaded, user } = useUser()
-  
 
-  const fetchUserInfo = async () => {
-    if (!isLoaded || !user) return
-
-    const displayName = user.fullName ?? user.firstName ?? 'Anonymous'
-    const email = user.primaryEmailAddress?.emailAddress ?? ''
-    const profileUrl = user.imageUrl ?? "https://static.thenounproject.com/png/5034901-200.png"
-
-    setUserInfo({
-      email,
-      displayName,
-      profileUrl,
-    })
-    setNewName(displayName)
-  }
+  useEffect(() => {
+    if (userInfo?.user_name) {
+      setNewName(userInfo.user_name);
+    }
+  }, [userInfo?.user_name]);
 
   const fetchDownloadedVideos = async () => {
     // Here you would fetch the downloaded videos from local storage or your database
@@ -44,15 +28,14 @@ const Profile = () => {
   }
 
   useEffect(() => {
-    fetchUserInfo()
     fetchDownloadedVideos()
-  }, [isLoaded, user?.id])
+  }, [])
 
   const handleSignOut = async () => {
-    Alert.alert('Confirm', 'Do you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert('Xác nhận', 'Bạn có muốn đăng xuất không?', [
+      { text: 'Hủy', style: 'cancel' },
       {
-        text: 'Logout',
+        text: 'Đăng xuất',
         style: 'destructive',
         onPress: async () => {
           try {
@@ -72,13 +55,11 @@ const Profile = () => {
       alert('Tên không được để trống')
       return
     }
-
     try {
-      if (!isLoaded || !user) return
-
-      await user.update({ firstName: newName.trim(), lastName: '' })
+      if (!userInfo?.id) return
+      await userService.updateUsername(userInfo.id, newName.trim())
       setEditingName(false)
-      fetchUserInfo()
+      await refreshUserData()
       alert('Cập nhật thành công!')
     } catch (error) {
       console.log(error)
@@ -89,31 +70,31 @@ const Profile = () => {
   const pickImageAndUpload = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (permissionResult.granted === false) {
-      alert('Permission to access gallery is required!')
+      alert('Cần cấp quyền truy cập thư viện ảnh!')
       return
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
     })
-
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      const pickedUri = result.assets[0].uri
-      await uploadProfileImage(pickedUri)
+      const pickedAsset = result.assets[0]
+      await uploadProfileImage(pickedAsset)
     }
   }
 
-  const uploadProfileImage = async (uri: string) => {
+  const uploadProfileImage = async (asset: ImagePicker.ImagePickerAsset) => {
     try {
       setUploading(true)
-      if (!isLoaded || !user) return
-
-      await user.setProfileImage({ file: uri })
-      await user.reload()
-      fetchUserInfo()
+      if (!userInfo?.id) return
+      const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: 'base64' })
+      const mimeType = asset.mimeType || 'image/jpeg'
+      const dataUrl = `data:${mimeType};base64,${base64}`
+      
+      await userService.uploadAvatar(userInfo.id, dataUrl, mimeType)
+      await refreshUserData()
       alert('Cập nhật ảnh đại diện thành công!')
     } catch (error) {
       console.log(error)
@@ -122,6 +103,7 @@ const Profile = () => {
       setUploading(false)
     }
   }
+
   if (!userInfo) {
     return (
       <View className="flex-1 justify-center items-center bg-black">
@@ -129,6 +111,7 @@ const Profile = () => {
       </View>
     );
   }
+
   return (
     <ScrollView className="flex-1 bg-black px-5 pt-10">
       <StatusBar barStyle="light-content" />
@@ -136,9 +119,9 @@ const Profile = () => {
       {/* Profile Header Section */}
       <View className="items-center mt-10 relative">
         <TouchableOpacity onPress={pickImageAndUpload} disabled={uploading} className="relative">
-          {userInfo.profileUrl ? (
+          {userInfo.avatar_url ? (
             <Image
-              source={{ uri: userInfo.profileUrl }}
+              source={{ uri: userInfo.avatar_url }}
               className="w-24 h-24 rounded-full"
             />
           ) : (
@@ -148,13 +131,13 @@ const Profile = () => {
             />
           )}
           {/* Edit Avatar Icon */}
-          <View className="absolute bottom-0 right-0 rounded-full p-1">
+          <View className="absolute bottom-0 right-0 rounded-full p-1 bg-black/50">
             <Ionicons name="create-outline" size={16} color="#fff"/>
           </View>
         </TouchableOpacity>
         
         {uploading && <ActivityIndicator color="#EE1520" className="mt-2" />}
-        <Text className="text-white text-2xl font-bold mt-4">{userInfo.displayName}</Text>
+        <Text className="text-white text-2xl font-bold mt-4">{userInfo.user_name}</Text>
         <Text className="text-white text-sm mt-2">{userInfo.email}</Text>
       </View>
 
@@ -185,7 +168,7 @@ const Profile = () => {
               className="flex-row items-center justify-between"
             >
               <View>
-                <Text className="text-white text-base">{userInfo.displayName || 'Chưa có tên'}</Text>
+                <Text className="text-white text-base">{userInfo.user_name || 'Chưa có tên'}</Text>
                 <Text className="text-white/40 text-xs mt-1">Nhấn để chỉnh sửa</Text>
               </View>
               <Feather name="edit" size={16} color="white" opacity={0.6} />

@@ -3,12 +3,13 @@ import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { images } from '@/constants/images'
 import { Icon } from '@/components/ui/icon'
-import { Eye, EyeOff, Trophy } from 'lucide-react-native'
+import { Eye, EyeOff } from 'lucide-react-native'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod'
 import { handleAuthError } from '@/lib/error-handling'
-import { useSignUp } from '@clerk/expo'
+import { authService } from '@/services/auth-service'
+
 const signupSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email!').email('Email không hợp lệ!'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
@@ -26,8 +27,7 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [pendingVerification, setPendingVerification] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
-
-  const { signUp: clerkSignUp } = useSignUp();
+  const [registeredEmail, setRegisteredEmail] = useState(''); // Lưu email để gửi OTP verify
 
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
@@ -37,10 +37,7 @@ const SignUp = () => {
   const signUp = async (data: SignupForm) => {
     setLoading(true);
     try {
-      const { error } = await clerkSignUp.password({
-        emailAddress: data.email,
-        password: data.password,
-      });
+      const { error } = await authService.signUp(data.email, data.password);
 
       if (error) {
         const authError = handleAuthError(error);
@@ -48,14 +45,9 @@ const SignUp = () => {
         return;
       }
 
-      const { error: sendCodeError } = await clerkSignUp.verifications.sendEmailCode();
-      if (sendCodeError) {
-        const authError = handleAuthError(sendCodeError);
-        alert(authError.message);
-        return;
-      }
-
+      setRegisteredEmail(data.email);
       setPendingVerification(true);
+      alert('Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực OTP.');
     } catch (error: any) {
         const authError = handleAuthError(error);
         alert(authError.message);
@@ -72,25 +64,16 @@ const SignUp = () => {
 
     setLoading(true);
     try {
-      const { error } = await clerkSignUp.verifications.verifyEmailCode({ code: verificationCode.trim() });
+      const { error } = await authService.verifyOtp(registeredEmail, verificationCode.trim());
+      
       if (error) {
         const authError = handleAuthError(error);
         alert(authError.message);
         return;
       }
 
-      if (clerkSignUp.status !== 'complete') {
-        alert('Xác thực email chưa hoàn tất');
-        return;
-      }
-
-      const { error: finalizeError } = await clerkSignUp.finalize();
-      if (finalizeError) {
-        const authError = handleAuthError(finalizeError);
-        alert(authError.message);
-        return;
-      }
-
+      alert('Xác thực e-mail thành công!');
+      // Auth context sẽ tự động lắng nghe onAuthStateChange và fetch data
       router.replace('/(tabs)');
     } catch (error: any) {
       const authError = handleAuthError(error);
@@ -99,6 +82,7 @@ const SignUp = () => {
       setLoading(false);
     }
   };
+
   return (
     <ImageBackground source={images.bg} className="flex-1 w-full h-full">
       <StatusBar barStyle="light-content" />
